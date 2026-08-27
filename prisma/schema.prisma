@@ -121,6 +121,8 @@ enum NodeType {
   OPENAI
   DISCORD
   SLACK
+  POLICY_GATE
+  RAZORPAY_EXECUTE
 }
 
 model Node {

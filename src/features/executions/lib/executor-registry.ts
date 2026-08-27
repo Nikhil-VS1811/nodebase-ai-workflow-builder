@@ -9,6 +9,8 @@ import { openAiExecutor } from "../components/openai/executor";
 import { anthropicExecutor } from "../components/anthropic/executor";
 import { discordExecutor } from "../components/discord/executor";
 import { slackExecutor } from "../components/slack/executor";
+import { policyGateExecutor } from "../components/policy-gate/executor";
+import { razorpayExecutor } from "../components/razorpay/executor";
 
 export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.INITIAL]: manualTriggerExecutor,
@@ -21,6 +23,8 @@ export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.OPENAI]: openAiExecutor,
   [NodeType.DISCORD]: discordExecutor,
   [NodeType.SLACK]: slackExecutor,
+  [NodeType.POLICY_GATE]: policyGateExecutor,
+  [NodeType.RAZORPAY_EXECUTE]: razorpayExecutor,
 };
 
 export const getExecutor = (type: NodeType): NodeExecutor => {

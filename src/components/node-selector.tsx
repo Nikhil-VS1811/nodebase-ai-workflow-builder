@@ -3,8 +3,10 @@
 import { createId } from "@paralleldrive/cuid2";
 import { useReactFlow } from "@xyflow/react";
 import {
+  CreditCardIcon,
   GlobeIcon,
   MousePointerIcon,
+  ShieldCheckIcon,
 } from "lucide-react";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -85,6 +87,22 @@ const executionNodes: NodeTypeOption[] = [
     icon: "/logos/slack.svg",
   },
 ];
+
+const financeNodes: NodeTypeOption[] = [
+  {
+    type: NodeType.POLICY_GATE,
+    label: "Policy Gate",
+    description: "Evaluates a transaction intent against agent policy rules before proceeding",
+    icon: ShieldCheckIcon,
+  },
+  {
+    type: NodeType.RAZORPAY_EXECUTE,
+    label: "Razorpay",
+    description: "Executes a payment order via Razorpay",
+    icon: CreditCardIcon,
+  },
+];
+
 
 
 interface NodeSelectorProps {
@@ -197,6 +215,45 @@ export function NodeSelector({
         <Separator />
         <div>
           {executionNodes.map((nodeType) => {
+            const Icon = nodeType.icon;
+
+            return (
+              <div
+                key={nodeType.type}
+                className="w-full justify-start h-auto py-5 px-4 rounded-none cursor-pointer border-l-2 border-transparent hover:border-l-primary"
+                onClick={() => handleNodeSelect(nodeType)}
+              >
+                <div className="flex items-center gap-6 w-full overflow-hidden">
+                  {typeof Icon === "string" ? (
+                    <img
+                      src={Icon}
+                      alt={nodeType.label}
+                      className="size-5 object-contain rounded-sm"
+                    />
+                  ) : (
+                    <Icon className="size-5" />
+                  )}
+                  <div className="flex flex-col items-start text-left">
+                    <span className="font-medium text-sm">
+                      {nodeType.label}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {nodeType.description}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        <Separator />
+        <div className="px-4 pt-3 pb-1">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Finance &amp; Security
+          </p>
+        </div>
+        <div>
+          {financeNodes.map((nodeType) => {
             const Icon = nodeType.icon;
 
             return (

@@ -1,0 +1,17 @@
+{
+  "agent": "nodebase-commerce-agent",
+  "permissions": {
+    "catalog.read": true,
+    "order.create": true,
+    "payment.execute": true,
+    "refund.execute": false
+  },
+  "limits": {
+    "per_transaction": 5000,
+    "daily_cap": 15000
+  },
+  "approval": {
+    "auto_approve_below": 2000,
+    "require_human_above": 2000
+  }
+}
