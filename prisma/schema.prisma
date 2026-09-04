@@ -94,6 +94,7 @@ enum CredentialType {
   OPENAI
   ANTHROPIC
   GEMINI
+  RAZORPAY
 }
 
 model Workflow {
@@ -105,6 +106,7 @@ model Workflow {
   nodes Node[]
   connections Connection[]
   executions Execution[]
+  decisionReceipts DecisionReceipt[]
 
   userId String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -123,6 +125,7 @@ enum NodeType {
   SLACK
   POLICY_GATE
   RAZORPAY_EXECUTE
+  AI_BUYER
 }
 
 model Node {
@@ -168,6 +171,7 @@ enum ExecutionStatus {
   RUNNING
   SUCCESS
   FAILED
+  PENDING_APPROVAL
 }
 
 model Execution {
@@ -186,4 +190,50 @@ model Execution {
   inngestEventId String @unique
 
   output Json?
+
+  decisionReceipt DecisionReceipt?
+  paymentOrders   PaymentOrder[]
 }
+
+model DecisionReceipt {
+  id             String   @id @default(cuid())
+  executionId    String   @unique
+  execution      Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  workflowId     String
+  workflow       Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  idempotencyKey String?
+  receiptVersion String   @default("1.0.0")
+  integrityHash  String
+  payload        Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([workflowId])
+  @@index([executionId])
+}
+
+enum PaymentOrderStatus {
+  PENDING
+  CREATED
+  VERIFIED
+  FAILED
+}
+
+model PaymentOrder {
+  id              String             @id @default(cuid())
+  executionId     String
+  execution       Execution          @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  nodeId          String
+  idempotencyKey  String             @unique
+  razorpayOrderId String?
+  status          PaymentOrderStatus @default(PENDING)
+  amount          Float
+  currency        String             @default("INR")
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([executionId])
+  @@index([idempotencyKey])
+  @@index([razorpayOrderId])
+}
+

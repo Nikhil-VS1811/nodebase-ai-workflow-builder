@@ -1,0 +1,82 @@
+[
+  {
+    "id": "prod_keyboard_01",
+    "title": "Ergonomic Mechanical Keyboard",
+    "description": "Custom mechanical keyboard with hot-swappable switches and RGB backlight",
+    "price": 4999,
+    "currency": "INR",
+    "category": "Electronics",
+    "stock": 25,
+    "merchantId": "merchant_nodebase_01"
+  },
+  {
+    "id": "prod_mouse_02",
+    "title": "Wireless Precision Mouse",
+    "description": "Ergonomic wireless mouse with high-precision optical sensor",
+    "price": 1999,
+    "currency": "INR",
+    "category": "Electronics",
+    "stock": 40,
+    "merchantId": "merchant_nodebase_01"
+  },
+  {
+    "id": "prod_headphones_03",
+    "title": "Noise-Cancelling Wireless Headphones",
+    "description": "Over-ear active noise cancelling Bluetooth headphones with 30-hour battery",
+    "price": 3499,
+    "currency": "INR",
+    "category": "Audio",
+    "stock": 15,
+    "merchantId": "merchant_nodebase_01"
+  },
+  {
+    "id": "prod_monitor_arm_04",
+    "title": "Heavy-Duty Single Monitor Arm",
+    "description": "Gas-spring adjustable desk mount for displays up to 32 inches",
+    "price": 2499,
+    "currency": "INR",
+    "category": "Office",
+    "stock": 30,
+    "merchantId": "merchant_nodebase_01"
+  },
+  {
+    "id": "prod_usb_dock_05",
+    "title": "10-in-1 USB-C Docking Station",
+    "description": "Multiport adapter with dual 4K HDMI, 100W Power Delivery, and Gigabit Ethernet",
+    "price": 2999,
+    "currency": "INR",
+    "category": "Accessories",
+    "stock": 50,
+    "merchantId": "merchant_nodebase_01"
+  },
+  {
+    "id": "prod_desk_mat_06",
+    "title": "Premium Vegan Leather Desk Mat",
+    "description": "Water-resistant smooth surface desk pad 900x400mm",
+    "price": 899,
+    "currency": "INR",
+    "category": "Office",
+    "stock": 100,
+    "merchantId": "merchant_nodebase_01"
+  },
+  {
+    "id": "prod_cable_organizer_07",
+    "title": "Magnetic Cable Management Kit",
+    "description": "Set of 5 magnetic cable clips with silicone base",
+    "price": 499,
+    "currency": "INR",
+    "category": "Accessories",
+    "stock": 80,
+    "merchantId": "merchant_nodebase_01"
+  },
+  {
+    "id": "prod_webcam_08",
+    "title": "4K Ultra HD Streaming Webcam",
+    "description": "Webcam with autofocus, built-in stereo microphones, and privacy cover",
+    "price": 4499,
+    "currency": "INR",
+    "category": "Electronics",
+    "stock": 18,
+    "merchantId": "merchant_nodebase_01"
+  }
+]

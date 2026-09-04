@@ -1,3 +1,4 @@
+import * as React from "react";
 import { AlertTriangleIcon, Loader2Icon, MoreVerticalIcon, PackageOpenIcon, PlusIcon, SearchIcon, TrashIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
@@ -339,7 +340,10 @@ export const EntityItem = ({
               {actions}
               {onRemove && (
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                  <DropdownMenuTrigger
+                    asChild
+                    id={`entity-menu-trigger-${href.replace(/[^a-zA-Z0-9_-]/g, "-")}`}
+                  >
                     <Button
                       size="icon"
                       variant="ghost"

@@ -62,6 +62,11 @@ const credentialTypeOptions = [
     label: "Gemini",
     logo: "/logos/gemini.svg",
   },
+  {
+    value: CredentialType.RAZORPAY,
+    label: "Razorpay",
+    logo: "/logos/stripe.svg",
+  },
 ];
 
 interface CredentialFormProps {

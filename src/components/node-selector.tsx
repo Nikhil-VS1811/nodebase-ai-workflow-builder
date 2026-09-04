@@ -7,6 +7,7 @@ import {
   GlobeIcon,
   MousePointerIcon,
   ShieldCheckIcon,
+  ShoppingBagIcon,
 } from "lucide-react";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -89,6 +90,12 @@ const executionNodes: NodeTypeOption[] = [
 ];
 
 const financeNodes: NodeTypeOption[] = [
+  {
+    type: NodeType.AI_BUYER,
+    label: "AI Buyer",
+    description: "Converts natural language shopping requests into catalog-validated transaction intents",
+    icon: ShoppingBagIcon,
+  },
   {
     type: NodeType.POLICY_GATE,
     label: "Policy Gate",

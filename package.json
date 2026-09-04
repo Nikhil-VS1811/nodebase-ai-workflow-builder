@@ -10,7 +10,9 @@
     "ngrok:dev": "dotenv -- ngrok http --url=$NGROK_URL 3000",
     "format": "biome format --write",
     "inngest:dev": "inngest-cli dev",
-    "dev:all": "dotenv -- mprocs"
+    "dev:all": "dotenv -- mprocs",
+    "test": "tsx --test $(find src -name '*.test.ts')",
+    "evaluate": "tsx scripts/evaluate.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.23",

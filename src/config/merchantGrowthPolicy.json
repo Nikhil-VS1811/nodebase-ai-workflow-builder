@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0",
+  "policyId": "mgp_default_balanced",
+  "objective": "BALANCED_COMMERCIAL_VALUE",
+  "minRelevanceScore": 20,
+  "commercialWeight": 1.0,
+  "maxCommercialBonus": 50,
+  "availabilityWeight": 1.0,
+  "allowedCategories": ["Electronics", "Audio", "Office", "Accessories"],
+  "excludedCategories": []
+}

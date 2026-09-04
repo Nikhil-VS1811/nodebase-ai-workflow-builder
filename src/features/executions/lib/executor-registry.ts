@@ -11,6 +11,7 @@ import { discordExecutor } from "../components/discord/executor";
 import { slackExecutor } from "../components/slack/executor";
 import { policyGateExecutor } from "../components/policy-gate/executor";
 import { razorpayExecutor } from "../components/razorpay/executor";
+import { aiBuyerExecutor } from "../components/ai-buyer/executor";
 
 export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.INITIAL]: manualTriggerExecutor,
@@ -25,6 +26,7 @@ export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.SLACK]: slackExecutor,
   [NodeType.POLICY_GATE]: policyGateExecutor,
   [NodeType.RAZORPAY_EXECUTE]: razorpayExecutor,
+  [NodeType.AI_BUYER]: aiBuyerExecutor,
 };
 
 export const getExecutor = (type: NodeType): NodeExecutor => {

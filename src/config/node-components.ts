@@ -13,6 +13,7 @@ import { DiscordNode } from "@/features/executions/components/discord/node";
 import { SlackNode } from "@/features/executions/components/slack/node";
 import { PolicyGateNode } from "@/features/executions/components/policy-gate/node";
 import { RazorpayNode } from "@/features/executions/components/razorpay/node";
+import { AiBuyerNode } from "@/features/executions/components/ai-buyer/node";
 
 export const nodeComponents = {
   [NodeType.INITIAL]: InitialNode,
@@ -27,6 +28,7 @@ export const nodeComponents = {
   [NodeType.SLACK]: SlackNode,
   [NodeType.POLICY_GATE]: PolicyGateNode,
   [NodeType.RAZORPAY_EXECUTE]: RazorpayNode,
+  [NodeType.AI_BUYER]: AiBuyerNode,
 } as const satisfies NodeTypes;
 
 export type RegisteredNodeType = keyof typeof nodeComponents;

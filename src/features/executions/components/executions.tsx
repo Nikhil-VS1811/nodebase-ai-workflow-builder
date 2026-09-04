@@ -15,7 +15,7 @@ import { useSuspenseExecutions } from "../hooks/use-executions"
 import { useExecutionsParams } from "../hooks/use-executions-params";
 import type { Execution } from "@/generated/prisma";
 import { ExecutionStatus } from "@/generated/prisma";
-import { CheckCircle2Icon, ClockIcon, Loader2Icon, XCircleIcon } from "lucide-react";
+import { AlertTriangleIcon, CheckCircle2Icon, ClockIcon, Loader2Icon, XCircleIcon } from "lucide-react";
 
 export const ExecutionsList = () => {
   const executions = useSuspenseExecutions();
@@ -92,12 +92,17 @@ const getStatusIcon = (status: ExecutionStatus) => {
       return <XCircleIcon className="size-5 text-red-600" />;
     case ExecutionStatus.RUNNING:
       return <Loader2Icon className="size-5 text-blue-600 animate-spin" />;
+    case ExecutionStatus.PENDING_APPROVAL:
+      return <AlertTriangleIcon className="size-5 text-amber-600" />;
     default:
       return <ClockIcon className="size-5 text-muted-foreground" />;
   }
 }
 
 const formatStatus = (status: ExecutionStatus) => {
+  if (status === ExecutionStatus.PENDING_APPROVAL) {
+    return "Pending Approval";
+  }
   return status.charAt(0) + status.slice(1).toLowerCase();
 };
 

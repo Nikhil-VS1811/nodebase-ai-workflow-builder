@@ -1,12 +1,16 @@
 "use client";
 
 import {
+  BotIcon,
   CreditCardIcon,
   FolderOpenIcon,
   HistoryIcon,
   KeyIcon,
   LogOutIcon,
+  ShieldCheckIcon,
+  SparklesIcon,
   StarIcon,
+  TrendingUpIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -30,19 +34,39 @@ const menuItems = [
     title: "Main",
     items: [
       {
+        title: "Commerce Demo",
+        icon: SparklesIcon,
+        url: "/commerce-demo",
+      },
+      {
+        title: "AI Buyer",
+        icon: BotIcon,
+        url: "/ai-buyer",
+      },
+      {
         title: "Workflows",
         icon: FolderOpenIcon,
         url: "/workflows",
       },
       {
-        title: "Credentials",
-        icon: KeyIcon,
-        url: "/credentials",
-      },
-      {
         title: "Executions",
         icon: HistoryIcon,
         url: "/executions",
+      },
+      {
+        title: "Safety Lab",
+        icon: ShieldCheckIcon,
+        url: "/safety-lab",
+      },
+      {
+        title: "Merchant Growth",
+        icon: TrendingUpIcon,
+        url: "/merchant-growth",
+      },
+      {
+        title: "Credentials",
+        icon: KeyIcon,
+        url: "/credentials",
       },
     ],
   }
