@@ -22,7 +22,7 @@ export const credentialsRouter = createTRPCRouter({
           name,
           userId: ctx.auth.user.id,
           type,
-          value: encrypt(value),
+          value: encrypt(value.trim()),
         },
       });
   }),
@@ -42,27 +42,38 @@ export const credentialsRouter = createTRPCRouter({
         id: z.string(), 
         name: z.string().min(1, "Name is required"),
         type: z.enum(CredentialType),
-        value: z.string().min(1, "Value is required"),
+        value: z.string().optional(),
       }),
     )
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { id, name, type, value } = input;
+
+      const existing = await prisma.credential.findUniqueOrThrow({
+        where: { id, userId: ctx.auth.user.id },
+      });
 
       return prisma.credential.update({
         where: { id, userId: ctx.auth.user.id },
         data: {
           name,
           type,
-          value: encrypt(value),
+          // If value is provided and non-empty, encrypt it; otherwise preserve existing ciphertext without double-encrypting
+          value: value && value.trim().length > 0 ? encrypt(value.trim()) : existing.value,
         }
       });
     }),
   getOne: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .query(({ ctx, input }) => {
-      return prisma.credential.findUniqueOrThrow({
+    .query(async ({ ctx, input }) => {
+      const credential = await prisma.credential.findUniqueOrThrow({
         where: { id: input.id, userId: ctx.auth.user.id },
       });
+
+      // Mask ciphertext to prevent exposing encrypted secret material to client
+      return {
+        ...credential,
+        value: "",
+      };
     }),
   getMany: protectedProcedure
     .input(
@@ -110,7 +121,10 @@ export const credentialsRouter = createTRPCRouter({
       const hasPreviousPage = page > 1;
 
       return {
-        items,
+        items: items.map((item) => ({
+          ...item,
+          value: "",
+        })),
         page,
         pageSize,
         totalCount,
@@ -125,14 +139,19 @@ export const credentialsRouter = createTRPCRouter({
         type: z.enum(CredentialType),
       })
     )
-    .query(({ input, ctx }) => {
+    .query(async ({ input, ctx }) => {
       const { type } = input;
 
-      return prisma.credential.findMany({
+      const items = await prisma.credential.findMany({
         where: { type, userId: ctx.auth.user.id },
         orderBy: {
           updatedAt: "desc",
         },
       });
+
+      return items.map((item) => ({
+        ...item,
+        value: "",
+      }));
     }),
 });

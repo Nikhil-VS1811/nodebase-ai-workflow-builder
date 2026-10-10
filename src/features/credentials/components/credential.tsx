@@ -41,7 +41,7 @@ import Link from "next/link";
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   type: z.enum(CredentialType),
-  value: z.string().min(1, "API key is required"),
+  value: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -69,7 +69,7 @@ interface CredentialFormProps {
     id?: string;
     name: string;
     type: CredentialType;
-    value: string;
+    value?: string;
   };
 };
 
@@ -85,9 +85,9 @@ export const CredentialForm = ({
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData || {
-      name: "",
-      type: CredentialType.OPENAI,
+    defaultValues: {
+      name: initialData?.name || "",
+      type: initialData?.type || CredentialType.OPENAI,
       value: "",
     },
   });
@@ -96,19 +96,29 @@ export const CredentialForm = ({
     if (isEdit && initialData?.id) {
       await updateCredential.mutateAsync({
         id: initialData.id,
-        ...values,
-      })
+        name: values.name,
+        type: values.type,
+        value: values.value && values.value.trim().length > 0 ? values.value.trim() : undefined,
+      });
     } else {
-      await createCredential.mutateAsync(values, {
+      if (!values.value || values.value.trim().length === 0) {
+        form.setError("value", { message: "API key is required" });
+        return;
+      }
+      await createCredential.mutateAsync({
+        name: values.name,
+        type: values.type,
+        value: values.value.trim(),
+      }, {
         onSuccess: (data) => {
           router.push(`/credentials/${data.id}`);
         },
         onError: (error) => {
           handleError(error);
         }
-      })
+      });
     }
-  }
+  };
 
   return (
     <>
@@ -188,7 +198,7 @@ export const CredentialForm = ({
                       <FormControl>
                         <Input 
                           type="password" 
-                          placeholder="sk-..."
+                          placeholder={isEdit ? "•••••••• (Leave blank to keep existing key)" : "sk-..."}
                           {...field}
                         />
                       </FormControl>
