@@ -62,3 +62,42 @@ export function verifyGoogleFormSecret(provided: string, expected: string): bool
     return false;
   }
 }
+
+export interface GoogleFormAuthResult {
+  authorized: boolean;
+  error?: string;
+  status?: number;
+}
+
+/**
+ * Validates Google Form webhook authentication.
+ * In production, GOOGLE_FORM_WEBHOOK_SECRET is mandatory; if missing, returns status 500.
+ * In local development, if GOOGLE_FORM_WEBHOOK_SECRET is omitted, requests are permitted.
+ * When GOOGLE_FORM_WEBHOOK_SECRET is present, the caller must supply a matching secret token (status 401 if invalid).
+ */
+export function validateGoogleFormWebhookAuth(
+  providedSecret: string | null | undefined,
+  configuredSecret: string | undefined,
+  isProduction: boolean,
+): GoogleFormAuthResult {
+  if (!configuredSecret) {
+    if (isProduction) {
+      return {
+        authorized: false,
+        error: "Google Form webhook secret is not configured in production",
+        status: 500,
+      };
+    }
+    return { authorized: true };
+  }
+
+  if (!providedSecret || !verifyGoogleFormSecret(providedSecret, configuredSecret)) {
+    return {
+      authorized: false,
+      error: "Unauthorized: Invalid or missing webhook secret",
+      status: 401,
+    };
+  }
+
+  return { authorized: true };
+}

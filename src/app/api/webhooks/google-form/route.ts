@@ -2,7 +2,7 @@ import { sendWorkflowExecution } from "@/inngest/utils";
 import prisma from "@/lib/db";
 import { NodeType } from "@/generated/prisma";
 import { type NextRequest, NextResponse } from "next/server";
-import { verifyGoogleFormSecret } from "@/lib/webhook-verification";
+import { validateGoogleFormWebhookAuth } from "@/lib/webhook-verification";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,20 +16,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If GOOGLE_FORM_WEBHOOK_SECRET is configured, enforce shared secret validation
+    // Enforce shared secret validation: mandatory in production, optional in local dev
     const configuredSecret = process.env.GOOGLE_FORM_WEBHOOK_SECRET;
-    if (configuredSecret) {
-      const providedSecret =
-        request.headers.get("x-webhook-secret") ||
-        url.searchParams.get("secret") ||
-        url.searchParams.get("token");
+    const isProduction = process.env.NODE_ENV === "production";
+    const providedSecret =
+      request.headers.get("x-webhook-secret") ||
+      url.searchParams.get("secret") ||
+      url.searchParams.get("token");
 
-      if (!providedSecret || !verifyGoogleFormSecret(providedSecret, configuredSecret)) {
-        return NextResponse.json(
-          { success: false, error: "Unauthorized: Invalid or missing webhook secret" },
-          { status: 401 },
-        );
-      }
+    const authResult = validateGoogleFormWebhookAuth(
+      providedSecret,
+      configuredSecret,
+      isProduction,
+    );
+
+    if (!authResult.authorized) {
+      return NextResponse.json(
+        { success: false, error: authResult.error },
+        { status: authResult.status || 401 },
+      );
     }
 
     // Verify workflow exists and has a GOOGLE_FORM_TRIGGER node

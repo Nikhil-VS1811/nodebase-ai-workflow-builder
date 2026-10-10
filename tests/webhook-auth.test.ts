@@ -8,7 +8,11 @@ function computeStripeHeader(secret: string, payload: string, timestamp: number)
   return `t=${timestamp},v1=${sig}`;
 }
 
-import { verifyStripeSignature, verifyGoogleFormSecret } from "../src/lib/webhook-verification";
+import {
+  verifyStripeSignature,
+  verifyGoogleFormSecret,
+  validateGoogleFormWebhookAuth,
+} from "../src/lib/webhook-verification";
 
 describe("Webhook Authentication & Validation", () => {
   const secret = "whsec_test_secret_key_1234567890";
@@ -77,6 +81,40 @@ describe("Webhook Authentication & Validation", () => {
 
     test("rejects empty token", () => {
       assert.equal(verifyGoogleFormSecret("", gfSecret), false);
+    });
+  });
+
+  describe("Google Form Webhook Guard & Environment Enforcement", () => {
+    const configuredSecret = "valid_production_secret_token_789";
+
+    test("rejects execution in production if secret is missing", () => {
+      const result = validateGoogleFormWebhookAuth(null, undefined, true);
+      assert.equal(result.authorized, false);
+      assert.equal(result.status, 500);
+      assert.match(result.error || "", /not configured in production/i);
+    });
+
+    test("allows execution in development if secret is omitted", () => {
+      const result = validateGoogleFormWebhookAuth(null, undefined, false);
+      assert.equal(result.authorized, true);
+    });
+
+    test("rejects invalid secret when secret is configured", () => {
+      const result = validateGoogleFormWebhookAuth("invalid_token", configuredSecret, true);
+      assert.equal(result.authorized, false);
+      assert.equal(result.status, 401);
+      assert.match(result.error || "", /Invalid or missing webhook secret/i);
+    });
+
+    test("rejects missing provided secret when secret is configured", () => {
+      const result = validateGoogleFormWebhookAuth(null, configuredSecret, true);
+      assert.equal(result.authorized, false);
+      assert.equal(result.status, 401);
+    });
+
+    test("accepts valid matching secret", () => {
+      const result = validateGoogleFormWebhookAuth(configuredSecret, configuredSecret, true);
+      assert.equal(result.authorized, true);
     });
   });
 });
