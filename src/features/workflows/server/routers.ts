@@ -8,6 +8,52 @@ import { NodeType } from "@/generated/prisma";
 import { inngest } from "@/inngest/client";
 import { sendWorkflowExecution } from "@/inngest/utils";
 
+export interface WorkflowEdgeInput {
+  source: string;
+  target: string;
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
+}
+
+export function sanitizeConnections(
+  workflowId: string,
+  nodeIds: string[],
+  edges: WorkflowEdgeInput[],
+) {
+  const validNodeIds = new Set(nodeIds);
+  const seenEdges = new Set<string>();
+  const uniqueConnections: Array<{
+    workflowId: string;
+    fromNodeId: string;
+    toNodeId: string;
+    fromOutput: string;
+    toInput: string;
+  }> = [];
+
+  for (const edge of edges) {
+    if (!edge.source || !edge.target) continue;
+    if (edge.source === edge.target) continue; // Skip self-loops
+    if (!validNodeIds.has(edge.source) || !validNodeIds.has(edge.target)) continue; // Skip dangling edges
+
+    const fromOutput = edge.sourceHandle || "main";
+    const toInput = edge.targetHandle || "main";
+    const edgeKey = `${edge.source}->${edge.target}:${fromOutput}->${toInput}`;
+
+    if (!seenEdges.has(edgeKey)) {
+      seenEdges.add(edgeKey);
+      uniqueConnections.push({
+        workflowId,
+        fromNodeId: edge.source,
+        toNodeId: edge.target,
+        fromOutput,
+        toInput,
+      });
+    }
+  }
+
+  return uniqueConnections;
+}
+
 export const workflowsRouter = createTRPCRouter({
   execute: protectedProcedure
     .input(z.object({ id: z.string() }))
@@ -98,16 +144,18 @@ export const workflowsRouter = createTRPCRouter({
           })),
         });
 
-        // Create connections
-        await tx.connection.createMany({
-          data: edges.map((edge) => ({
-            workflowId: id,
-            fromNodeId: edge.source,
-            toNodeId: edge.target,
-            fromOutput: edge.sourceHandle || "main",
-            toInput: edge.targetHandle || "main",
-          })),
-        });
+        // Create sanitized connections
+        const uniqueConnections = sanitizeConnections(
+          id,
+          nodes.map((node) => node.id),
+          edges,
+        );
+
+        if (uniqueConnections.length > 0) {
+          await tx.connection.createMany({
+            data: uniqueConnections,
+          });
+        }
 
         // Update workflow's updateAt timestamp
         await tx.workflow.update({

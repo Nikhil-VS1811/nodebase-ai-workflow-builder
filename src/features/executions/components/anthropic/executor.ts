@@ -71,7 +71,7 @@ export const anthropicExecutor: NodeExecutor<AnthropicData> = async ({
     : "You are a helpful assistant.";
   const userPrompt = Handlebars.compile(data.userPrompt)(context);
 
-  const credential = await step.run("get-credential", () => {
+  const credential = await step.run(`get-credential-${nodeId}`, () => {
     return prisma.credential.findUnique({
       where: {
         id: data.credentialId,
@@ -96,7 +96,7 @@ export const anthropicExecutor: NodeExecutor<AnthropicData> = async ({
 
   try {
     const { steps } = await step.ai.wrap(
-      "anthropic-generate-text",
+      `anthropic-generate-text-${nodeId}`,
       generateText,
       {
         model: anthropic("claude-sonnet-4-5"),
@@ -104,8 +104,8 @@ export const anthropicExecutor: NodeExecutor<AnthropicData> = async ({
         prompt: userPrompt,
         experimental_telemetry: {
           isEnabled: true,
-          recordInputs: true,
-          recordOutputs: true,
+          recordInputs: false,
+          recordOutputs: false,
         },
       },
     );

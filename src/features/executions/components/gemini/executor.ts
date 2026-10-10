@@ -71,7 +71,7 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
     : "You are a helpful assistant.";
   const userPrompt = Handlebars.compile(data.userPrompt)(context);
 
-  const credential = await step.run("get-credential", () => {
+  const credential = await step.run(`get-credential-${nodeId}`, () => {
     return prisma.credential.findUnique({
       where: {
         id: data.credentialId,
@@ -96,7 +96,7 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
 
   try {
     const { steps } = await step.ai.wrap(
-      "gemini-generate-text",
+      `gemini-generate-text-${nodeId}`,
       generateText,
       {
         model: google("gemini-2.0-flash"),
@@ -104,8 +104,8 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
         prompt: userPrompt,
         experimental_telemetry: {
           isEnabled: true,
-          recordInputs: true,
-          recordOutputs: true,
+          recordInputs: false,
+          recordOutputs: false,
         },
       },
     );

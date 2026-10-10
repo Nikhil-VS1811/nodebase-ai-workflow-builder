@@ -71,7 +71,7 @@ export const openAiExecutor: NodeExecutor<OpenAiData> = async ({
     : "You are a helpful assistant.";
   const userPrompt = Handlebars.compile(data.userPrompt)(context);
 
-  const credential = await step.run("get-credential", () => {
+  const credential = await step.run(`get-credential-${nodeId}`, () => {
     return prisma.credential.findUnique({
       where: {
         id: data.credentialId,
@@ -96,7 +96,7 @@ export const openAiExecutor: NodeExecutor<OpenAiData> = async ({
 
   try {
     const { steps } = await step.ai.wrap(
-      "openai-generate-text",
+      `openai-generate-text-${nodeId}`,
       generateText,
       {
         model: openai("gpt-4"),
@@ -104,8 +104,8 @@ export const openAiExecutor: NodeExecutor<OpenAiData> = async ({
         prompt: userPrompt,
         experimental_telemetry: {
           isEnabled: true,
-          recordInputs: true,
-          recordOutputs: true,
+          recordInputs: false,
+          recordOutputs: false,
         },
       },
     );

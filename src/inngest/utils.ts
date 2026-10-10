@@ -18,25 +18,10 @@ export const topologicalSort = (
     conn.toNodeId,
   ]);
 
-  // Add nodes with no connections as self-edges to ensure they're included
-  const connectedNodeIds = new Set<string>();
-  for (const conn of connections) {
-    connectedNodeIds.add(conn.fromNodeId);
-    connectedNodeIds.add(conn.toNodeId);
-  }
-
-  for (const node of nodes) {
-    if (!connectedNodeIds.has(node.id)) {
-      edges.push([node.id, node.id]);
-    }
-  }
-
-  // Perform topological sort
-  let sortedNodeIds: string[];
+  // Perform topological sort on connected edges
+  let sortedConnectedIds: string[];
   try {
-    sortedNodeIds = toposort(edges);
-    // Remove duplicates (from self-edges)
-    sortedNodeIds = [...new Set(sortedNodeIds)];
+    sortedConnectedIds = toposort(edges);
   } catch (error) {
     if (error instanceof Error && error.message.includes("Cyclic")) {
       throw new Error("Workflow contains a cycle");
@@ -44,9 +29,17 @@ export const topologicalSort = (
     throw error;
   }
 
-  // Map sorted IDs back to node objects
+  // Preserve all unconnected/independent nodes
+  const connectedIdSet = new Set(sortedConnectedIds);
+  const unconnectedNodes = nodes.filter((node) => !connectedIdSet.has(node.id));
+
+  // Map sorted IDs back to node objects and append unconnected nodes
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
-  return sortedNodeIds.map((id) => nodeMap.get(id)!).filter(Boolean);
+  const sortedConnectedNodes = sortedConnectedIds
+    .map((id) => nodeMap.get(id)!)
+    .filter(Boolean);
+
+  return [...sortedConnectedNodes, ...unconnectedNodes];
 };
 
 export const sendWorkflowExecution = async (data: {
