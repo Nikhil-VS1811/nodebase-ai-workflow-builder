@@ -2,20 +2,7 @@ import { sendWorkflowExecution } from "@/inngest/utils";
 import prisma from "@/lib/db";
 import { NodeType } from "@/generated/prisma";
 import { type NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
-
-export function verifySecret(provided: string, expected: string): boolean {
-  try {
-    const providedBuffer = Buffer.from(provided, "utf8");
-    const expectedBuffer = Buffer.from(expected, "utf8");
-    if (providedBuffer.length !== expectedBuffer.length) {
-      return false;
-    }
-    return crypto.timingSafeEqual(providedBuffer, expectedBuffer);
-  } catch {
-    return false;
-  }
-}
+import { verifyGoogleFormSecret } from "@/lib/webhook-verification";
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,7 +24,7 @@ export async function POST(request: NextRequest) {
         url.searchParams.get("secret") ||
         url.searchParams.get("token");
 
-      if (!providedSecret || !verifySecret(providedSecret, configuredSecret)) {
+      if (!providedSecret || !verifyGoogleFormSecret(providedSecret, configuredSecret)) {
         return NextResponse.json(
           { success: false, error: "Unauthorized: Invalid or missing webhook secret" },
           { status: 401 },

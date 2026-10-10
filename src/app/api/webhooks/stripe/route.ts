@@ -2,57 +2,7 @@ import { sendWorkflowExecution } from "@/inngest/utils";
 import prisma from "@/lib/db";
 import { NodeType } from "@/generated/prisma";
 import { type NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
-
-export function verifyStripeSignature(
-  rawBody: string,
-  signatureHeader: string,
-  secret: string,
-  toleranceInSeconds = 300,
-): boolean {
-  try {
-    const parts = signatureHeader.split(",");
-    let timestamp: number | null = null;
-    const signatures: string[] = [];
-
-    for (const part of parts) {
-      const [key, value] = part.trim().split("=");
-      if (key === "t") {
-        timestamp = parseInt(value, 10);
-      } else if (key === "v1") {
-        signatures.push(value);
-      }
-    }
-
-    if (!timestamp || signatures.length === 0) {
-      return false;
-    }
-
-    // Verify timestamp tolerance against replay attacks
-    const now = Math.floor(Date.now() / 1000);
-    if (Math.abs(now - timestamp) > toleranceInSeconds) {
-      return false;
-    }
-
-    const signedPayload = `${timestamp}.${rawBody}`;
-    const expectedSignature = crypto
-      .createHmac("sha256", secret)
-      .update(signedPayload, "utf8")
-      .digest("hex");
-
-    const expectedBuffer = Buffer.from(expectedSignature, "hex");
-
-    return signatures.some((sig) => {
-      const sigBuffer = Buffer.from(sig, "hex");
-      return (
-        sigBuffer.length === expectedBuffer.length &&
-        crypto.timingSafeEqual(sigBuffer, expectedBuffer)
-      );
-    });
-  } catch {
-    return false;
-  }
-}
+import { verifyStripeSignature } from "@/lib/webhook-verification";
 
 export async function POST(request: NextRequest) {
   try {

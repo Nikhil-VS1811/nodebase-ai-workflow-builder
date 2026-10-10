@@ -8,8 +8,7 @@ function computeStripeHeader(secret: string, payload: string, timestamp: number)
   return `t=${timestamp},v1=${sig}`;
 }
 
-import { verifyStripeSignature } from "../src/app/api/webhooks/stripe/route";
-import { verifySecret as verifyGoogleFormSecret } from "../src/app/api/webhooks/google-form/route";
+import { verifyStripeSignature, verifyGoogleFormSecret } from "../src/lib/webhook-verification";
 
 describe("Webhook Authentication & Validation", () => {
   const secret = "whsec_test_secret_key_1234567890";
