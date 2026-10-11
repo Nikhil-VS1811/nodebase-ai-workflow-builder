@@ -326,9 +326,28 @@ describe("Phase 6O.8 — Guest Workflow & Demo Builder Architecture", () => {
       );
     });
 
-    it("all private routes remain strictly protected by requireAuth", () => {
+    it("/workflows page renders GuestWorkflowsView for unauthenticated visitors without calling prefetchWorkflows", () => {
+      const workflowsPageSource = fs.readFileSync(
+        path.join(repoRoot, "src/app/(dashboard)/(rest)/workflows/page.tsx"),
+        "utf8",
+      );
+
+      assert.ok(
+        workflowsPageSource.includes("getOptionalSession()"),
+        "/workflows page must check getOptionalSession()",
+      );
+      assert.ok(
+        workflowsPageSource.includes("<GuestWorkflowsView />"),
+        "/workflows page must render <GuestWorkflowsView /> when session is absent",
+      );
+      assert.ok(
+        workflowsPageSource.includes("prefetchWorkflows(params)"),
+        "/workflows page must still prefetch workflows for authenticated users",
+      );
+    });
+
+    it("all private credential and execution routes remain strictly protected by requireAuth", () => {
       const privateRoutes = [
-        "src/app/(dashboard)/(rest)/workflows/page.tsx",
         "src/app/(dashboard)/(rest)/credentials/page.tsx",
         "src/app/(dashboard)/(rest)/credentials/[credentialId]/page.tsx",
         "src/app/(dashboard)/(rest)/credentials/new/page.tsx",

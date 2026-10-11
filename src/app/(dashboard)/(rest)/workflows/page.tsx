@@ -2,6 +2,7 @@ import type { SearchParams } from "nuqs/server";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import {
+  GuestWorkflowsView,
   WorkflowsContainer,
   WorkflowsError,
   WorkflowsList,
@@ -9,7 +10,7 @@ import {
 } from "@/features/workflows/components/workflows";
 import { workflowsParamsLoader } from "@/features/workflows/server/params-loader";
 import { prefetchWorkflows } from "@/features/workflows/server/prefetch";
-import { requireAuth } from "@/lib/auth-utils";
+import { getOptionalSession } from "@/lib/auth-utils";
 import { HydrateClient } from "@/trpc/server";
 
 type Props = {
@@ -17,7 +18,11 @@ type Props = {
 };
 
 const Page = async ({ searchParams }: Props) => {
-  await requireAuth("/workflows");
+  const session = await getOptionalSession();
+
+  if (!session) {
+    return <GuestWorkflowsView />;
+  }
 
   const params = await workflowsParamsLoader(searchParams);
   prefetchWorkflows(params);
