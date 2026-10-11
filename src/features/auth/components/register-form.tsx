@@ -25,20 +25,18 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
-import {
-  buildAuthHref,
-  resolveClientRedirectPath,
-} from "@/lib/redirect-utils";
+import { buildAuthHref, resolveClientRedirectPath } from "@/lib/redirect-utils";
 
-const registerSchema = z.object({
-  email: z.email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-  confirmPassword: z.string(),
-})
-.refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"]
-});
+const registerSchema = z
+  .object({
+    email: z.email("Please enter a valid email address"),
+    password: z.string().min(1, "Password is required"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
@@ -56,31 +54,47 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string } = {}) {
   });
 
   const signInGithub = async () => {
-    await authClient.signIn.social({
-      provider: "github",
-      callbackURL: redirectPath,
-    }, {
-      onSuccess: () => {
-        router.push(redirectPath);
+    await authClient.signIn.social(
+      {
+        provider: "github",
+        callbackURL: redirectPath,
+        newUserCallbackURL: redirectPath,
+        errorCallbackURL: buildAuthHref("/signup", redirectPath),
       },
-      onError: () => {
-        toast.error("Something went wrong");
+      {
+        onSuccess: (ctx) => {
+          if (!ctx?.data?.redirect) {
+            router.replace(redirectPath);
+            router.refresh();
+          }
+        },
+        onError: (ctx) => {
+          toast.error(ctx.error?.message ?? "Something went wrong");
+        },
       },
-    });
+    );
   };
 
   const signInGoogle = async () => {
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: redirectPath,
-    }, {
-      onSuccess: () => {
-        router.push(redirectPath);
+    await authClient.signIn.social(
+      {
+        provider: "google",
+        callbackURL: redirectPath,
+        newUserCallbackURL: redirectPath,
+        errorCallbackURL: buildAuthHref("/signup", redirectPath),
       },
-      onError: () => {
-        toast.error("Something went wrong");
+      {
+        onSuccess: (ctx) => {
+          if (!ctx?.data?.redirect) {
+            router.replace(redirectPath);
+            router.refresh();
+          }
+        },
+        onError: (ctx) => {
+          toast.error(ctx.error?.message ?? "Something went wrong");
+        },
       },
-    });
+    );
   };
 
   const onSubmit = async (values: RegisterFormValues) => {
@@ -93,13 +107,14 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string } = {}) {
       },
       {
         onSuccess: () => {
-          router.push(redirectPath);
+          router.replace(redirectPath);
+          router.refresh();
         },
         onError: (ctx) => {
           toast.error(ctx.error.message);
-        }
-      }
-    )
+        },
+      },
+    );
   };
 
   const isPending = form.formState.isSubmitting;
@@ -108,12 +123,8 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string } = {}) {
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader className="text-center">
-          <CardTitle>
-            Get Started
-          </CardTitle>
-          <CardDescription>
-            Create your account to get started
-          </CardDescription>
+          <CardTitle>Get Started</CardTitle>
+          <CardDescription>Create your account to get started</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -127,7 +138,12 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string } = {}) {
                     type="button"
                     disabled={isPending}
                   >
-                    <Image alt="GitHub" src="/logos/github.svg" width={20} height={20} />
+                    <Image
+                      alt="GitHub"
+                      src="/logos/github.svg"
+                      width={20}
+                      height={20}
+                    />
                     Continue with GitHub
                   </Button>
                   <Button
@@ -137,7 +153,12 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string } = {}) {
                     type="button"
                     disabled={isPending}
                   >
-                    <Image alt="Google" src="/logos/google.svg" width={20} height={20} />
+                    <Image
+                      alt="Google"
+                      src="/logos/google.svg"
+                      width={20}
+                      height={20}
+                    />
                     Continue with Google
                   </Button>
                 </div>
@@ -213,4 +234,4 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string } = {}) {
       </Card>
     </div>
   );
-};
+}

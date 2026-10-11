@@ -179,10 +179,12 @@ export default async function LandingPage() {
 
           <div className="flex items-center gap-2.5">
             <Button variant="ghost" size="sm" asChild>
-              <Link href={signInHref}>Sign In</Link>
+              <Link href={signInHref} prefetch={false}>
+                Sign In
+              </Link>
             </Button>
             <Button size="sm" asChild>
-              <Link href={getStartedHref}>
+              <Link href={getStartedHref} prefetch={false}>
                 Get Started
                 <ArrowRightIcon className="size-4" />
               </Link>
@@ -218,7 +220,7 @@ export default async function LandingPage() {
 
               <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
                 <Button size="lg" className="w-full sm:w-auto" asChild>
-                  <Link href={getStartedHref}>
+                  <Link href={getStartedHref} prefetch={false}>
                     Get Started
                     <ArrowRightIcon className="size-4" />
                   </Link>
@@ -229,7 +231,9 @@ export default async function LandingPage() {
                   className="w-full sm:w-auto"
                   asChild
                 >
-                  <Link href={signInHref}>Sign In to Workspace</Link>
+                  <Link href={signInHref} prefetch={false}>
+                    Sign In to Workspace
+                  </Link>
                 </Button>
               </div>
             </div>
@@ -522,7 +526,7 @@ export default async function LandingPage() {
             </p>
             <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button size="lg" className="w-full sm:w-auto" asChild>
-                <Link href={getStartedHref}>
+                <Link href={getStartedHref} prefetch={false}>
                   Get Started
                   <ArrowRightIcon className="size-4" />
                 </Link>
@@ -533,7 +537,9 @@ export default async function LandingPage() {
                 className="w-full sm:w-auto"
                 asChild
               >
-                <Link href={signInHref}>Sign In</Link>
+                <Link href={signInHref} prefetch={false}>
+                  Sign In
+                </Link>
               </Button>
             </div>
           </div>
@@ -559,18 +565,21 @@ export default async function LandingPage() {
           <div className="text-muted-foreground flex flex-wrap items-center justify-center gap-6 text-xs font-medium">
             <Link
               href={signInHref}
+              prefetch={false}
               className="hover:text-foreground transition-colors"
             >
               Sign In
             </Link>
             <Link
               href={getStartedHref}
+              prefetch={false}
               className="hover:text-foreground transition-colors"
             >
               Get Started
             </Link>
             <Link
               href="/workflows"
+              prefetch={false}
               className="hover:text-foreground transition-colors"
             >
               Workflows Dashboard

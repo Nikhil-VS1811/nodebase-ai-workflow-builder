@@ -25,10 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
-import {
-  buildAuthHref,
-  resolveClientRedirectPath,
-} from "@/lib/redirect-utils";
+import { buildAuthHref, resolveClientRedirectPath } from "@/lib/redirect-utils";
 
 const loginSchema = z.object({
   email: z.email("Please enter a valid email address"),
@@ -50,46 +47,65 @@ export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
   });
 
   const signInGithub = async () => {
-    await authClient.signIn.social({
-      provider: "github",
-      callbackURL: redirectPath,
-    }, {
-      onSuccess: () => {
-        router.push(redirectPath);
+    await authClient.signIn.social(
+      {
+        provider: "github",
+        callbackURL: redirectPath,
+        newUserCallbackURL: redirectPath,
+        errorCallbackURL: buildAuthHref("/login", redirectPath),
       },
-      onError: () => {
-        toast.error("Something went wrong");
+      {
+        onSuccess: (ctx) => {
+          if (!ctx?.data?.redirect) {
+            router.replace(redirectPath);
+            router.refresh();
+          }
+        },
+        onError: (ctx) => {
+          toast.error(ctx.error?.message ?? "Something went wrong");
+        },
       },
-    });
+    );
   };
 
   const signInGoogle = async () => {
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: redirectPath,
-    }, {
-      onSuccess: () => {
-        router.push(redirectPath);
+    await authClient.signIn.social(
+      {
+        provider: "google",
+        callbackURL: redirectPath,
+        newUserCallbackURL: redirectPath,
+        errorCallbackURL: buildAuthHref("/login", redirectPath),
       },
-      onError: () => {
-        toast.error("Something went wrong");
+      {
+        onSuccess: (ctx) => {
+          if (!ctx?.data?.redirect) {
+            router.replace(redirectPath);
+            router.refresh();
+          }
+        },
+        onError: (ctx) => {
+          toast.error(ctx.error?.message ?? "Something went wrong");
+        },
       },
-    });
+    );
   };
 
   const onSubmit = async (values: LoginFormValues) => {
-    await authClient.signIn.email({
-      email: values.email,
-      password: values.password,
-      callbackURL: redirectPath,
-    }, {
-      onSuccess: () => {
-        router.push(redirectPath);
+    await authClient.signIn.email(
+      {
+        email: values.email,
+        password: values.password,
       },
-      onError: (ctx) => {
-        toast.error(ctx.error.message);
+      {
+        onSuccess: () => {
+          router.replace(redirectPath);
+          router.refresh();
+        },
+        onError: (ctx) => {
+          toast.error(ctx.error.message);
+        },
       },
-    });
+    );
   };
 
   const isPending = form.formState.isSubmitting;
@@ -98,12 +114,8 @@ export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader className="text-center">
-          <CardTitle>
-            Welcome back
-          </CardTitle>
-          <CardDescription>
-            Login to continue
-          </CardDescription>
+          <CardTitle>Welcome back</CardTitle>
+          <CardDescription>Login to continue</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -117,7 +129,12 @@ export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
                     type="button"
                     disabled={isPending}
                   >
-                    <Image alt="GitHub" src="/logos/github.svg" width={20} height={20} />
+                    <Image
+                      alt="GitHub"
+                      src="/logos/github.svg"
+                      width={20}
+                      height={20}
+                    />
                     Continue with GitHub
                   </Button>
                   <Button
@@ -127,7 +144,12 @@ export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
                     type="button"
                     disabled={isPending}
                   >
-                    <Image alt="Google" src="/logos/google.svg" width={20} height={20} />
+                    <Image
+                      alt="Google"
+                      src="/logos/google.svg"
+                      width={20}
+                      height={20}
+                    />
                     Continue with Google
                   </Button>
                 </div>
@@ -186,4 +208,4 @@ export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
       </Card>
     </div>
   );
-};
+}

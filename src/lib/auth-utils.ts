@@ -13,7 +13,7 @@ export const getOptionalSession = async () => {
   }
 };
 
-export const requireAuth = async (redirectTo?: string | null) => {
+export const requireAuth = async (redirectTo: string | null = "/workflows") => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });

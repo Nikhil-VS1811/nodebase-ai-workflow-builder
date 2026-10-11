@@ -163,6 +163,74 @@ describe("Landing Page CTA & Authentication Redirect Handling", () => {
         );
       }
     });
+
+    it("simulates OAuth sign-in flow with and without redirect query param", () => {
+      // Case A: With redirect query param
+      const searchWithRedirect = "?redirect=/workflows/wf_789";
+      const resolvedTargetA = resolveClientRedirectPath(
+        undefined,
+        searchWithRedirect,
+      );
+      assert.equal(resolvedTargetA, "/workflows/wf_789");
+
+      const oauthOptionsA = {
+        provider: "github",
+        callbackURL: resolvedTargetA,
+        newUserCallbackURL: resolvedTargetA,
+        errorCallbackURL: buildAuthHref("/login", resolvedTargetA),
+      };
+      assert.equal(oauthOptionsA.callbackURL, "/workflows/wf_789");
+      assert.equal(oauthOptionsA.newUserCallbackURL, "/workflows/wf_789");
+      assert.equal(
+        oauthOptionsA.errorCallbackURL,
+        "/login?redirect=/workflows/wf_789",
+      );
+
+      // Case B: Without redirect query param (direct /login visit)
+      const resolvedTargetB = resolveClientRedirectPath(undefined, "");
+      assert.equal(resolvedTargetB, "/workflows");
+
+      const oauthOptionsB = {
+        provider: "google",
+        callbackURL: resolvedTargetB,
+        newUserCallbackURL: resolvedTargetB,
+        errorCallbackURL: buildAuthHref("/login", resolvedTargetB),
+      };
+      assert.equal(oauthOptionsB.callbackURL, "/workflows");
+      assert.equal(oauthOptionsB.newUserCallbackURL, "/workflows");
+      assert.equal(
+        oauthOptionsB.errorCallbackURL,
+        "/login?redirect=/workflows",
+      );
+    });
+
+    it("simulates unauthenticated direct access to protected routes redirecting to /login with return destination", () => {
+      // Visiting /workflows unauthenticated
+      const workflowsHref = buildAuthHref("/login", "/workflows");
+      assert.equal(workflowsHref, "/login?redirect=/workflows");
+
+      // Visiting /workflows/wf_abc unauthenticated
+      const workflowDetailHref = buildAuthHref("/login", "/workflows/wf_abc");
+      assert.equal(workflowDetailHref, "/login?redirect=/workflows/wf_abc");
+
+      // Visiting /credentials unauthenticated
+      const credentialsHref = buildAuthHref("/login", "/credentials");
+      assert.equal(credentialsHref, "/login?redirect=/credentials");
+    });
+
+    it("simulates authenticated direct access to /login or /signup redirecting to workflows or preserved target", () => {
+      // Authenticated user visits /login without param
+      assert.equal(sanitizeRedirectPath(undefined), "/workflows");
+
+      // Authenticated user visits /signup with preserved return destination
+      assert.equal(
+        sanitizeRedirectPath("/credentials/new"),
+        "/credentials/new",
+      );
+
+      // Authenticated user visits /login with malicious param
+      assert.equal(sanitizeRedirectPath("https://attacker.com"), "/workflows");
+    });
   });
 
   describe("Open-Redirect Prevention", () => {
@@ -305,13 +373,32 @@ describe("Landing Page CTA & Authentication Redirect Handling", () => {
 
       assert.equal(
         (loginFormSource.match(/callbackURL:\s*redirectPath/g) ?? []).length,
-        3,
-        "LoginForm must pass callbackURL: redirectPath to GitHub, Google, and email signIn",
+        2,
+        "LoginForm must pass callbackURL: redirectPath to GitHub and Google OAuth signIn",
       );
       assert.equal(
-        (loginFormSource.match(/router\.push\(redirectPath\)/g) ?? []).length,
-        3,
-        "LoginForm must router.push(redirectPath) on success for GitHub, Google, and email signIn",
+        (loginFormSource.match(/newUserCallbackURL:\s*redirectPath/g) ?? [])
+          .length,
+        2,
+        "LoginForm must pass newUserCallbackURL: redirectPath to GitHub and Google OAuth signIn",
+      );
+      assert.equal(
+        (loginFormSource.match(/errorCallbackURL:\s*buildAuthHref/g) ?? [])
+          .length,
+        2,
+        "LoginForm must pass errorCallbackURL with return destination to OAuth providers",
+      );
+      assert.ok(
+        loginFormSource.includes("router.replace(redirectPath)"),
+        "LoginForm must router.replace(redirectPath) on email signIn success",
+      );
+      assert.ok(
+        loginFormSource.includes("router.refresh()"),
+        "LoginForm must router.refresh() on email signIn success to refresh server cache",
+      );
+      assert.ok(
+        !loginFormSource.includes("router.push(redirectPath)"),
+        "LoginForm must not prematurely call router.push(redirectPath) before OAuth completes",
       );
       assert.ok(
         loginFormSource.includes('buildAuthHref("/signup", redirectPath)'),
@@ -324,14 +411,60 @@ describe("Landing Page CTA & Authentication Redirect Handling", () => {
         "RegisterForm must pass callbackURL: redirectPath to GitHub, Google, and email signUp",
       );
       assert.equal(
-        (registerFormSource.match(/router\.push\(redirectPath\)/g) ?? [])
+        (registerFormSource.match(/newUserCallbackURL:\s*redirectPath/g) ?? [])
           .length,
-        3,
-        "RegisterForm must router.push(redirectPath) on success for GitHub, Google, and email signUp",
+        2,
+        "RegisterForm must pass newUserCallbackURL: redirectPath to GitHub and Google OAuth signIn",
+      );
+      assert.equal(
+        (registerFormSource.match(/errorCallbackURL:\s*buildAuthHref/g) ?? [])
+          .length,
+        2,
+        "RegisterForm must pass errorCallbackURL with return destination to OAuth providers",
+      );
+      assert.ok(
+        registerFormSource.includes("router.replace(redirectPath)"),
+        "RegisterForm must router.replace(redirectPath) on email signUp success",
+      );
+      assert.ok(
+        registerFormSource.includes("router.refresh()"),
+        "RegisterForm must router.refresh() on email signUp success to refresh server cache",
+      );
+      assert.ok(
+        !registerFormSource.includes("router.push(redirectPath)"),
+        "RegisterForm must not prematurely call router.push(redirectPath) before OAuth completes",
       );
       assert.ok(
         registerFormSource.includes('buildAuthHref("/login", redirectPath)'),
         "RegisterForm must preserve redirectPath on Login link",
+      );
+    });
+
+    it("auth.ts and auth-utils.ts configure trustedOrigins, resilient customer sync, and default protected redirect", () => {
+      const authSource = fs.readFileSync(
+        path.join(repoRoot, "src/lib/auth.ts"),
+        "utf8",
+      );
+      const authUtilsSource = fs.readFileSync(
+        path.join(repoRoot, "src/lib/auth-utils.ts"),
+        "utf8",
+      );
+
+      assert.ok(
+        authSource.includes("trustedOrigins:"),
+        "auth.ts must define trustedOrigins to prevent Better Auth originCheckMiddleware rejections",
+      );
+      assert.ok(
+        authSource.includes("isPolarConfigured()"),
+        "auth.ts must only enable createCustomerOnSignUp when Polar is configured",
+      );
+      assert.ok(
+        authUtilsSource.includes('redirectTo: string | null = "/workflows"'),
+        'requireAuth must default redirectTo to "/workflows" so direct visits to protected routes redirect to /login?redirect=/workflows',
+      );
+      assert.ok(
+        authUtilsSource.includes("sanitizeRedirectPath(redirectTo)"),
+        "requireUnauth must sanitize redirectTo before redirecting authenticated users",
       );
     });
   });

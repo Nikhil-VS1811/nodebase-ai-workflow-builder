@@ -1,6 +1,10 @@
-import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { getPolarServer, getPolarProProductId } from "../src/lib/polar";
+import { afterEach, beforeEach, describe, test } from "node:test";
+import {
+  getPolarProProductId,
+  getPolarServer,
+  isPolarConfigured,
+} from "../src/lib/polar";
 
 describe("Polar Billing Configuration & Environment Validation", () => {
   const originalEnv = { ...process.env };
@@ -8,6 +12,7 @@ describe("Polar Billing Configuration & Environment Validation", () => {
   beforeEach(() => {
     delete process.env.POLAR_SERVER;
     delete process.env.POLAR_PRODUCT_ID_PRO;
+    delete process.env.POLAR_ACCESS_TOKEN;
   });
 
   afterEach(() => {
@@ -48,7 +53,10 @@ describe("Polar Billing Configuration & Environment Validation", () => {
     test("returns sandbox fallback UUID when unset in sandbox mode", () => {
       delete process.env.POLAR_SERVER;
       delete process.env.POLAR_PRODUCT_ID_PRO;
-      assert.equal(getPolarProProductId(), "f81be8a8-45e1-4e45-a1e9-b9d3fd79f814");
+      assert.equal(
+        getPolarProProductId(),
+        "f81be8a8-45e1-4e45-a1e9-b9d3fd79f814",
+      );
     });
 
     test("returns configured POLAR_PRODUCT_ID_PRO when provided", () => {
@@ -69,6 +77,23 @@ describe("Polar Billing Configuration & Environment Validation", () => {
       process.env.POLAR_SERVER = "production";
       process.env.POLAR_PRODUCT_ID_PRO = "prod_pro_plan_uuid_999";
       assert.equal(getPolarProProductId(), "prod_pro_plan_uuid_999");
+    });
+  });
+
+  describe("isPolarConfigured", () => {
+    test("returns false when POLAR_ACCESS_TOKEN is unset", () => {
+      delete process.env.POLAR_ACCESS_TOKEN;
+      assert.equal(isPolarConfigured(), false);
+    });
+
+    test("returns false when POLAR_ACCESS_TOKEN is empty or whitespace", () => {
+      process.env.POLAR_ACCESS_TOKEN = "   ";
+      assert.equal(isPolarConfigured(), false);
+    });
+
+    test("returns true when POLAR_ACCESS_TOKEN is non-empty", () => {
+      process.env.POLAR_ACCESS_TOKEN = "polar_at_test123";
+      assert.equal(isPolarConfigured(), true);
     });
   });
 });
