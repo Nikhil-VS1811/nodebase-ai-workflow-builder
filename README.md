@@ -136,56 +136,15 @@ Authenticate with email/password or OAuth providers (GitHub and Google) powered 
 
 ## System Architecture
 
-```mermaid
-flowchart TD
-    subgraph Client["Browser Client - Next.js 15 App Router and React 19"]
-        Landing["Public Landing Page"]
-        GuestCanvas["Guest Workflow Builder - Browser localStorage"]
-        AuthCanvas["Authenticated Editor and Dashboard - React Flow"]
-    end
+![NodeBase AI Workflow Builder System Architecture](public/images/nodebase-architecture.png)
 
-    subgraph Server["Next.js Server and Authorization Layer"]
-        AuthAPI["Better Auth - Email, GitHub OAuth, Google OAuth, Polar"]
-        TRPC["tRPC v11 Routers - Protected and Premium Procedures"]
-        Webhooks["Verified Webhook Routes - Stripe and Google Forms"]
-        RealtimeAuth["Realtime Token Action - User and Node Ownership Check"]
-    end
+NodeBase is organized into five isolated architectural layers:
 
-    subgraph Data["Persistence and Cryptography"]
-        Prisma["PostgreSQL with Prisma ORM - Workflows, Nodes, Executions"]
-        Crypto["Credential Encryption - Cryptr AES-256-GCM"]
-    end
-
-    subgraph Orchestration["Durable Execution Engine - Inngest"]
-        InngestRoute["Inngest Runner - execute-workflow"]
-        TopoSort["Topological Sort and DAG Cycle Validation"]
-        RealtimePub["Inngest Realtime Channels - User-Scoped Status"]
-    end
-
-    subgraph Integrations["Workflow Node Executors - SSRF Validated"]
-        AI["AI Providers - OpenAI, Google Gemini, Anthropic Claude"]
-        HTTP["HTTP Request Executor - ky with SSRF Guard"]
-        Chat["Messaging Webhooks - Discord and Slack"]
-    end
-
-    Landing -->|"Get Started as Guest"| GuestCanvas
-    Landing -->|"Sign In or Sign Up"| AuthAPI
-    AuthAPI -->|"Authenticated Session"| AuthCanvas
-    AuthCanvas -->|"Type-Safe Queries and Mutations"| TRPC
-    AuthCanvas -->|"Request Subscription Token"| RealtimeAuth
-    TRPC -->|"Read and Write State"| Prisma
-    TRPC -->|"Encrypt API Credentials"| Crypto
-    TRPC -->|"Send Execute Event"| InngestRoute
-    Webhooks -->|"HMAC and Secret Verified Event"| InngestRoute
-    InngestRoute -->|"Load Graph and Save Execution"| Prisma
-    InngestRoute -->|"Order Nodes"| TopoSort
-    TopoSort -->|"Execute AI Step"| AI
-    TopoSort -->|"Execute HTTP Step"| HTTP
-    TopoSort -->|"Execute Messaging Step"| Chat
-    Crypto -.->|"Decrypt API Key at Runtime"| AI
-    InngestRoute -->|"Publish Node Status"| RealtimePub
-    RealtimePub -.->|"Stream Live Status"| AuthCanvas
-```
+- **Browser Client Layer (`Next.js 15 App Router`, `React 19`, `@xyflow/react`):** Serves the public landing page (`/`), the zero-login **Guest Workflow Builder** (`/workflows/demo`) backed by browser `localStorage`, and the authenticated React Flow editor and dashboard (`/workflows`, `/credentials`, `/executions`).
+- **Application Server, API & Security Boundaries:** Enforces authentication via **Better Auth** (Email/Password, GitHub OAuth, Google OAuth, and Polar billing), tenant-scoped **tRPC v11** routers (`protectedProcedure` and `premiumProcedure`), HMAC/secret-verified webhook endpoints (`/api/webhooks/stripe` and `/api/webhooks/google-form`), and ownership-verified **Inngest Realtime** subscription token minting.
+- **Data Persistence & Credential Encryption Layer:** Stores users, workflows, nodes, connections, credentials, and execution audit logs in **PostgreSQL** via **Prisma ORM**, while encrypting provider API keys at rest with **Cryptr (`AES-256-GCM`)** using `ENCRYPTION_KEY`.
+- **Workflow Execution Engine (`Inngest`):** Runs the durable `execute-workflow` function (`/api/inngest`), performing topological DAG sorting (`toposort`), deterministic step execution with automatic retries, and user-isolated realtime status publishing (`${channelName}:${userId}`).
+- **Workflow Triggers, AI Providers & Outbound Integrations:** Executes configured triggers (`MANUAL_TRIGGER`, `GOOGLE_FORM_TRIGGER`, `STRIPE_TRIGGER`), multi-provider LLM nodes (**OpenAI** `gpt-4`, **Google Gemini** `gemini-2.0-flash`, **Anthropic** `claude-sonnet-4-5`) via the Vercel AI SDK, and outbound **HTTP Request**, **Discord**, and **Slack** actions protected by `validateUrlForSsrf()`.
 
 ### Workflow Execution Lifecycle
 
