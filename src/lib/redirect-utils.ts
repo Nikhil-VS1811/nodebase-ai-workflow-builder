@@ -164,12 +164,9 @@ export function buildAuthHref(
 export const DEMO_WORKFLOW_ROUTE = "/workflows/demo";
 
 export function getGetStartedHref(
-  isAuthenticated: boolean,
-  redirectTarget: string = DEFAULT_AUTH_REDIRECT,
+  _isAuthenticated = false,
+  _redirectTarget: string = DEFAULT_AUTH_REDIRECT,
 ): string {
-  if (isAuthenticated) {
-    return sanitizeRedirectPath(redirectTarget);
-  }
   return DEMO_WORKFLOW_ROUTE;
 }
 

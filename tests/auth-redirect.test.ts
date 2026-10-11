@@ -14,12 +14,12 @@ import {
 
 describe("Landing Page CTA & Authentication Redirect Handling", () => {
   describe("Get Started & Sign In CTA Hrefs", () => {
-    it("routes unauthenticated Get Started CTA directly to /workflows/demo without login or signup", () => {
+    it("routes unauthenticated Get Started as Guest CTA directly to /workflows/demo without login or signup", () => {
       assert.equal(getGetStartedHref(false), "/workflows/demo");
     });
 
-    it("routes authenticated Get Started CTA directly to /workflows", () => {
-      assert.equal(getGetStartedHref(true), "/workflows");
+    it("routes Get Started as Guest CTA directly to /workflows/demo even when authenticated", () => {
+      assert.equal(getGetStartedHref(true), "/workflows/demo");
     });
 
     it("routes Sign In CTA to /login with return destination /workflows", () => {
@@ -33,7 +33,7 @@ describe("Landing Page CTA & Authentication Redirect Handling", () => {
       );
       assert.equal(
         getGetStartedHref(true, "//evil.example/phish"),
-        "/workflows",
+        "/workflows/demo",
       );
       assert.equal(
         getSignInHref("javascript:alert(1)"),
@@ -130,10 +130,10 @@ describe("Landing Page CTA & Authentication Redirect Handling", () => {
       assert.equal(switchToLoginHref, "/login?redirect=/workflows");
     });
 
-    it("simulates signed-in Get Started -> direct /workflows navigation", () => {
+    it("simulates signed-in Get Started as Guest -> direct /workflows/demo navigation", () => {
       // 1. Visitor is already authenticated on /
       const landingGetStartedHref = getGetStartedHref(true);
-      assert.equal(landingGetStartedHref, "/workflows");
+      assert.equal(landingGetStartedHref, "/workflows/demo");
     });
 
     it("simulates Sign In to Workspace -> Login -> /workflows flow", () => {
@@ -332,7 +332,16 @@ describe("Landing Page CTA & Authentication Redirect Handling", () => {
       assert.equal(
         (pageSource.match(/href=\{getStartedHref\}/g) ?? []).length,
         4,
-        "All 4 Get Started CTAs on LandingPage must use getStartedHref",
+        "All 4 Get Started as Guest CTAs on LandingPage must use getStartedHref",
+      );
+      assert.equal(
+        (pageSource.match(/aria-label="Get Started as Guest"/g) ?? []).length,
+        4,
+        'All 4 Get Started as Guest CTAs on LandingPage must have aria-label="Get Started as Guest"',
+      );
+      assert.ok(
+        pageSource.includes("Get Started as Guest"),
+        "LandingPage must display 'Get Started as Guest' button text",
       );
       assert.equal(
         (pageSource.match(/href=\{signInHref\}/g) ?? []).length,

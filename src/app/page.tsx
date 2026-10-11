@@ -184,8 +184,12 @@ export default async function LandingPage() {
               </Link>
             </Button>
             <Button size="sm" asChild>
-              <Link href={getStartedHref} prefetch={false}>
-                Get Started
+              <Link
+                href={getStartedHref}
+                prefetch={false}
+                aria-label="Get Started as Guest"
+              >
+                Get Started as Guest
                 <ArrowRightIcon className="size-4" />
               </Link>
             </Button>
@@ -220,8 +224,12 @@ export default async function LandingPage() {
 
               <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
                 <Button size="lg" className="w-full sm:w-auto" asChild>
-                  <Link href={getStartedHref} prefetch={false}>
-                    Get Started
+                  <Link
+                    href={getStartedHref}
+                    prefetch={false}
+                    aria-label="Get Started as Guest"
+                  >
+                    Get Started as Guest
                     <ArrowRightIcon className="size-4" />
                   </Link>
                 </Button>
@@ -526,8 +534,12 @@ export default async function LandingPage() {
             </p>
             <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button size="lg" className="w-full sm:w-auto" asChild>
-                <Link href={getStartedHref} prefetch={false}>
-                  Get Started
+                <Link
+                  href={getStartedHref}
+                  prefetch={false}
+                  aria-label="Get Started as Guest"
+                >
+                  Get Started as Guest
                   <ArrowRightIcon className="size-4" />
                 </Link>
               </Button>
@@ -573,9 +585,10 @@ export default async function LandingPage() {
             <Link
               href={getStartedHref}
               prefetch={false}
+              aria-label="Get Started as Guest"
               className="hover:text-foreground transition-colors"
             >
-              Get Started
+              Get Started as Guest
             </Link>
             <Link
               href="/workflows"

@@ -37,8 +37,9 @@ describe("Phase 6O.8 — Guest Workflow & Demo Builder Architecture", () => {
       assert.equal(getGetStartedHref(false), "/workflows/demo");
     });
 
-    it("routes authenticated Get Started directly to /workflows dashboard", () => {
-      assert.equal(getGetStartedHref(true), "/workflows");
+    it("routes Get Started as Guest directly to /workflows/demo regardless of auth state", () => {
+      assert.equal(getGetStartedHref(true), DEMO_WORKFLOW_ROUTE);
+      assert.equal(getGetStartedHref(true), "/workflows/demo");
     });
 
     it("preserves Sign In CTA to /login with return destination /workflows", () => {
