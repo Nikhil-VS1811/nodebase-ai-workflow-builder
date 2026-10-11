@@ -1,7 +1,9 @@
 import type { Realtime } from "@inngest/realtime";
 import { useInngestSubscription } from "@inngest/realtime/hooks";
+import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { NodeStatus } from "@/components/react-flow/node-status-indicator";
+import { isDemoWorkflow } from "@/features/workflows/guest-workflow";
 
 interface UseNodeStatusOptions {
   nodeId: string;
@@ -20,7 +22,10 @@ export function useNodeStatus({
   refreshToken,
 }: UseNodeStatusOptions) {
   const [status, setStatus] = useState<NodeStatus>("initial");
-  const isDemoNode = nodeId.startsWith("demo-") || nodeId.includes("demo");
+  const params = useParams();
+  const isDemoRoute = isDemoWorkflow(params?.workflowId as string | undefined);
+  const isDemoNode =
+    isDemoRoute || nodeId.startsWith("demo-") || nodeId.includes("demo");
 
   const handleRefreshToken = useCallback(
     () => refreshToken({ nodeId }),

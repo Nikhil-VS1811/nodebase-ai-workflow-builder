@@ -15,7 +15,7 @@ import {
   Panel,
   ReactFlow,
 } from "@xyflow/react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ErrorView, LoadingView } from "@/components/entity-components";
 import { useSuspenseWorkflow } from "@/features/workflows/hooks/use-workflows";
 
@@ -25,6 +25,7 @@ import { nodeComponents } from "@/config/node-components";
 import {
   getGuestWorkflow,
   isDemoWorkflow,
+  saveGuestWorkflow,
 } from "@/features/workflows/guest-workflow";
 import { NodeType } from "@/generated/prisma";
 import { editorAtom } from "../store/atoms";
@@ -110,6 +111,10 @@ export const GuestEditor = ({
 
   const [nodes, setNodes] = useState<Node[]>(guestWorkflow.nodes);
   const [edges, setEdges] = useState<Edge[]>(guestWorkflow.edges);
+
+  useEffect(() => {
+    saveGuestWorkflow({ nodes, edges });
+  }, [nodes, edges]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>

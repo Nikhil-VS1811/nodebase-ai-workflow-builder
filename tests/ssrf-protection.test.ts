@@ -1,6 +1,9 @@
-import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { isPrivateOrReservedIp, validateUrlForSsrf } from "../src/features/executions/components/http-request/executor";
+import { describe, test } from "node:test";
+import {
+  isPrivateOrReservedIp,
+  validateUrlForSsrf,
+} from "../src/features/executions/components/http-request/executor";
 
 describe("SSRF Protection Audit (Direct Production Module Testing)", () => {
   describe("IPv4 Boundary Classification", () => {
@@ -118,7 +121,10 @@ describe("SSRF Protection Audit (Direct Production Module Testing)", () => {
         /Target host 'db.internal' is forbidden/,
       );
       await assert.rejects(
-        () => validateUrlForSsrf("http://metadata.google.internal/computeMetadata/v1/"),
+        () =>
+          validateUrlForSsrf(
+            "http://metadata.google.internal/computeMetadata/v1/",
+          ),
         /Target host 'metadata.google.internal' is forbidden/,
       );
       await assert.rejects(
@@ -147,8 +153,62 @@ describe("SSRF Protection Audit (Direct Production Module Testing)", () => {
     });
 
     test("allows valid public IP URLs directly without DNS lookup", async () => {
-      await assert.doesNotReject(() => validateUrlForSsrf("https://8.8.8.8/dns-query"));
+      await assert.doesNotReject(() =>
+        validateUrlForSsrf("https://8.8.8.8/dns-query"),
+      );
       await assert.doesNotReject(() => validateUrlForSsrf("https://1.1.1.1/"));
+    });
+  });
+
+  describe("Outbound Webhook Executors SSRF Enforcement (Discord & Slack)", () => {
+    test("discordExecutor and slackExecutor enforce validateUrlForSsrf and block internal/metadata webhook targets", async () => {
+      const { discordExecutor } = await import(
+        "../src/features/executions/components/discord/executor"
+      );
+      const { slackExecutor } = await import(
+        "../src/features/executions/components/slack/executor"
+      );
+
+      const mockPublish = (async () => ({})) as unknown as Parameters<
+        typeof discordExecutor
+      >[0]["publish"];
+      const mockStep = {
+        run: async <T>(_id: string, fn: () => Promise<T> | T) => await fn(),
+      } as unknown as Parameters<typeof discordExecutor>[0]["step"];
+
+      await assert.rejects(
+        () =>
+          discordExecutor({
+            data: {
+              webhookUrl: "http://169.254.169.254/latest/meta-data/",
+              content: "Hello",
+              variableName: "discordRes",
+            },
+            nodeId: "node-discord-1",
+            userId: "user-123",
+            context: {},
+            step: mockStep,
+            publish: mockPublish,
+          }),
+        /Access to private or reserved IP address '169.254.169.254' is forbidden/,
+      );
+
+      await assert.rejects(
+        () =>
+          slackExecutor({
+            data: {
+              webhookUrl: "http://127.0.0.1:8080/internal-admin",
+              content: "Hello",
+              variableName: "slackRes",
+            },
+            nodeId: "node-slack-1",
+            userId: "user-123",
+            context: {},
+            step: mockStep,
+            publish: mockPublish,
+          }),
+        /Access to private or reserved IP address '127.0.0.1' is forbidden/,
+      );
     });
   });
 });

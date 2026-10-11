@@ -1,9 +1,10 @@
 import Handlebars from "handlebars";
 import { decode } from "html-entities";
 import { NonRetriableError } from "inngest";
+import ky from "ky";
+import { validateUrlForSsrf } from "@/features/executions/components/http-request/executor";
 import type { NodeExecutor } from "@/features/executions/types";
 import { discordChannel } from "@/inngest/channels/discord";
-import ky from "ky";
 
 Handlebars.registerHelper("json", (context) => {
   const jsonString = JSON.stringify(context, null, 2);
@@ -62,7 +63,11 @@ export const discordExecutor: NodeExecutor<DiscordData> = async ({
         throw new NonRetriableError("Discord node: Webhook URL is required");
       }
 
+      await validateUrlForSsrf(data.webhookUrl);
+
       await ky.post(data.webhookUrl, {
+        redirect: "error",
+        timeout: 30000,
         json: {
           content: content.slice(0, 2000), // Discord's max message length
           username,
@@ -74,7 +79,7 @@ export const discordExecutor: NodeExecutor<DiscordData> = async ({
           discordChannel(userId).status({
             nodeId,
             status: "error",
-          })
+          }),
         );
         throw new NonRetriableError("Discord node: Variable name is missing");
       }
@@ -86,7 +91,7 @@ export const discordExecutor: NodeExecutor<DiscordData> = async ({
         },
       };
     });
-    
+
     await publish(
       discordChannel(userId).status({
         nodeId,
@@ -96,7 +101,7 @@ export const discordExecutor: NodeExecutor<DiscordData> = async ({
 
     return result;
   } catch (error) {
-     await publish(
+    await publish(
       discordChannel(userId).status({
         nodeId,
         status: "error",

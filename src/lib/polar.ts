@@ -89,6 +89,23 @@ function createPolarClient(): Polar {
     }
   };
 
+  const originalGetStateExternal = client.customers.getStateExternal.bind(
+    client.customers,
+  );
+  client.customers.getStateExternal = async (...args) => {
+    try {
+      return await originalGetStateExternal(...args);
+    } catch (error) {
+      console.warn(
+        "Polar customer getStateExternal warning (non-fatal):",
+        error,
+      );
+      return { activeSubscriptions: [] } as unknown as Awaited<
+        ReturnType<typeof originalGetStateExternal>
+      >;
+    }
+  };
+
   return client;
 }
 

@@ -96,4 +96,16 @@ describe("Polar Billing Configuration & Environment Validation", () => {
       assert.equal(isPolarConfigured(), true);
     });
   });
+
+  describe("polarClient resilience & premiumProcedure fallback", () => {
+    test("polarClient.customers.getStateExternal returns safe empty activeSubscriptions instead of throwing when unconfigured", async () => {
+      const { polarClient } = await import("../src/lib/polar");
+      const result = await polarClient.customers.getStateExternal({
+        externalId: "nonexistent-user-id",
+      });
+      assert.ok(result);
+      assert.ok(Array.isArray(result.activeSubscriptions));
+      assert.equal(result.activeSubscriptions.length, 0);
+    });
+  });
 });

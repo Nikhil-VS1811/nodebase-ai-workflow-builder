@@ -388,5 +388,46 @@ describe("Phase 6O.8 — Guest Workflow & Demo Builder Architecture", () => {
         );
       }
     });
+
+    it("GuestEditor auto-persists canvas node and edge changes to localStorage and NodeSelector prefixes guest node IDs", () => {
+      const editorSource = fs.readFileSync(
+        path.join(repoRoot, "src/features/editor/components/editor.tsx"),
+        "utf8",
+      );
+      assert.ok(
+        editorSource.includes("saveGuestWorkflow({ nodes, edges })"),
+        "GuestEditor must automatically persist nodes and edges to browser storage",
+      );
+
+      const selectorSource = fs.readFileSync(
+        path.join(repoRoot, "src/components/node-selector.tsx"),
+        "utf8",
+      );
+      assert.ok(
+        selectorSource.includes("isGuest ? `demo-") &&
+          selectorSource.includes("createId()"),
+        "NodeSelector must prefix newly created guest nodes with demo-",
+      );
+    });
+
+    it("AI node dialogs disable credential tRPC queries and allow optional credentialId in guest mode", () => {
+      const aiDialogs = [
+        "src/features/executions/components/gemini/dialog.tsx",
+        "src/features/executions/components/openai/dialog.tsx",
+        "src/features/executions/components/anthropic/dialog.tsx",
+      ];
+
+      for (const dialogPath of aiDialogs) {
+        const source = fs.readFileSync(path.join(repoRoot, dialogPath), "utf8");
+        assert.ok(
+          source.includes("enabled: open && !isGuest"),
+          `${dialogPath} must disable credential query when in guest mode or closed`,
+        );
+        assert.ok(
+          source.includes("isGuest || Boolean(data.credentialId?.trim())"),
+          `${dialogPath} must allow optional credentialId in guest mode`,
+        );
+      }
+    });
   });
 });

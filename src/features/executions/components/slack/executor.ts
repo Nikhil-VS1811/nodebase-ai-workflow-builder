@@ -1,9 +1,10 @@
 import Handlebars from "handlebars";
 import { decode } from "html-entities";
 import { NonRetriableError } from "inngest";
+import ky from "ky";
+import { validateUrlForSsrf } from "@/features/executions/components/http-request/executor";
 import type { NodeExecutor } from "@/features/executions/types";
 import { slackChannel } from "@/inngest/channels/slack";
-import ky from "ky";
 
 Handlebars.registerHelper("json", (context) => {
   const jsonString = JSON.stringify(context, null, 2);
@@ -58,7 +59,11 @@ export const slackExecutor: NodeExecutor<SlackData> = async ({
         throw new NonRetriableError("Slack node: Webhook URL is required");
       }
 
+      await validateUrlForSsrf(data.webhookUrl);
+
       await ky.post(data.webhookUrl, {
+        redirect: "error",
+        timeout: 30000,
         json: {
           content: content, // The key depends on workflow config
         },
@@ -69,7 +74,7 @@ export const slackExecutor: NodeExecutor<SlackData> = async ({
           slackChannel(userId).status({
             nodeId,
             status: "error",
-          })
+          }),
         );
         throw new NonRetriableError("Slack node: Variable name is missing");
       }
@@ -81,7 +86,7 @@ export const slackExecutor: NodeExecutor<SlackData> = async ({
         },
       };
     });
-    
+
     await publish(
       slackChannel(userId).status({
         nodeId,
@@ -91,7 +96,7 @@ export const slackExecutor: NodeExecutor<SlackData> = async ({
 
     return result;
   } catch (error) {
-     await publish(
+    await publish(
       slackChannel(userId).status({
         nodeId,
         status: "error",

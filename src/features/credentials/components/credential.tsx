@@ -1,17 +1,19 @@
 "use client";
 
-import { CredentialType } from "@/generated/prisma";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { 
-  useCreateCredential, 
-  useUpdateCredential,
-  useSuspenseCredential,
-} from "../hooks/use-credentials";
-import { useUpgradeModal } from "@/hooks/use-upgrade-modal";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 import z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -28,15 +30,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CredentialType } from "@/generated/prisma";
+import { useUpgradeModal } from "@/hooks/use-upgrade-modal";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+  useCreateCredential,
+  useSuspenseCredential,
+  useUpdateCredential,
+} from "../hooks/use-credentials";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -71,11 +71,9 @@ interface CredentialFormProps {
     type: CredentialType;
     value?: string;
   };
-};
+}
 
-export const CredentialForm = ({
-  initialData,
-}: CredentialFormProps) => {
+export const CredentialForm = ({ initialData }: CredentialFormProps) => {
   const router = useRouter();
   const createCredential = useCreateCredential();
   const updateCredential = useUpdateCredential();
@@ -94,29 +92,35 @@ export const CredentialForm = ({
 
   const onSubmit = async (values: FormValues) => {
     if (isEdit && initialData?.id) {
-      await updateCredential.mutateAsync({
+      updateCredential.mutate({
         id: initialData.id,
         name: values.name,
         type: values.type,
-        value: values.value && values.value.trim().length > 0 ? values.value.trim() : undefined,
+        value:
+          values.value && values.value.trim().length > 0
+            ? values.value.trim()
+            : undefined,
       });
     } else {
       if (!values.value || values.value.trim().length === 0) {
         form.setError("value", { message: "API key is required" });
         return;
       }
-      await createCredential.mutateAsync({
-        name: values.name,
-        type: values.type,
-        value: values.value.trim(),
-      }, {
-        onSuccess: (data) => {
-          router.push(`/credentials/${data.id}`);
+      createCredential.mutate(
+        {
+          name: values.name,
+          type: values.type,
+          value: values.value.trim(),
         },
-        onError: (error) => {
-          handleError(error);
-        }
-      });
+        {
+          onSuccess: (data) => {
+            router.push(`/credentials/${data.id}`);
+          },
+          onError: (error) => {
+            handleError(error);
+          },
+        },
+      );
     }
   };
 
@@ -136,109 +140,103 @@ export const CredentialForm = ({
         </CardHeader>
         <CardContent>
           <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="My API key" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
-                        <Input placeholder="My API key" {...field} />
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {credentialTypeOptions.map((option) => (
-                            <SelectItem
-                              key={option.value}
-                              value={option.value}
-                            >
-                              <div className="flex items-center gap-2">
-                                <Image
-                                  src={option.logo}
-                                  alt={option.label}
-                                  width={16}
-                                  height={16}
-                                />
-                                {option.label}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <SelectContent>
+                        {credentialTypeOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            <div className="flex items-center gap-2">
+                              <Image
+                                src={option.logo}
+                                alt={option.label}
+                                width={16}
+                                height={16}
+                              />
+                              {option.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="value"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>API Key</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder={isEdit ? "•••••••• (Leave blank to keep existing key)" : "sk-..."}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="value"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>API Key</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder={
+                          isEdit
+                            ? "•••••••• (Leave blank to keep existing key)"
+                            : "sk-..."
+                        }
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <div className="flex gap-4">
-                  <Button
-                    type="submit"
-                    disabled={
-                      createCredential.isPending ||
-                      updateCredential.isPending
-                    }
-                  >
-                    {isEdit ? "Update" : "Create"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    asChild
-                  >
-                    <Link href="/credentials" prefetch>
-                      Cancel
-                    </Link>
-                  </Button>
-                </div>
-              </form>
+              <div className="flex gap-4">
+                <Button
+                  type="submit"
+                  disabled={
+                    createCredential.isPending || updateCredential.isPending
+                  }
+                >
+                  {isEdit ? "Update" : "Create"}
+                </Button>
+                <Button type="button" variant="outline" asChild>
+                  <Link href="/credentials" prefetch>
+                    Cancel
+                  </Link>
+                </Button>
+              </div>
+            </form>
           </Form>
         </CardContent>
       </Card>
     </>
-  )
+  );
 };
 
-export const CredentialView = ({
-  credentialId,
-}: { credentialId: string }) => {
+export const CredentialView = ({ credentialId }: { credentialId: string }) => {
   const { data: credential } = useSuspenseCredential(credentialId);
 
-  return <CredentialForm initialData={credential} />
+  return <CredentialForm initialData={credential} />;
 };
