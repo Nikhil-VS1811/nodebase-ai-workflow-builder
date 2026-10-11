@@ -5,12 +5,13 @@ type StripeTriggerData = Record<string, unknown>;
 
 export const stripeTriggerExecutor: NodeExecutor<StripeTriggerData> = async ({
   nodeId,
+  userId,
   context,
   step,
   publish,
 }) => {
   await publish(
-    stripeTriggerChannel().status({
+    stripeTriggerChannel(userId).status({
       nodeId,
       status: "loading",
     }),
@@ -19,7 +20,7 @@ export const stripeTriggerExecutor: NodeExecutor<StripeTriggerData> = async ({
   const result = await step.run(`stripe-trigger-${nodeId}`, async () => context);
 
   await publish(
-    stripeTriggerChannel().status({
+    stripeTriggerChannel(userId).status({
       nodeId,
       status: "success",
     }),

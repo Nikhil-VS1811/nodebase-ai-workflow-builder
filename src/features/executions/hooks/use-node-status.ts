@@ -1,14 +1,17 @@
 import type { Realtime } from "@inngest/realtime";
 import { useInngestSubscription } from "@inngest/realtime/hooks";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { NodeStatus } from "@/components/react-flow/node-status-indicator";
 
 interface UseNodeStatusOptions {
   nodeId: string;
   channel: string;
   topic: string;
-  refreshToken: () => Promise<Realtime.Subscribe.Token>;
-};
+  refreshToken: (options?: {
+    nodeId?: string;
+    workflowId?: string;
+  }) => Promise<Realtime.Subscribe.Token>;
+}
 
 export function useNodeStatus({
   nodeId,
@@ -18,8 +21,13 @@ export function useNodeStatus({
 }: UseNodeStatusOptions) {
   const [status, setStatus] = useState<NodeStatus>("initial");
 
+  const handleRefreshToken = useCallback(
+    () => refreshToken({ nodeId }),
+    [refreshToken, nodeId],
+  );
+
   const { data } = useInngestSubscription({
-    refreshToken,
+    refreshToken: handleRefreshToken,
     enabled: true,
   });
 
@@ -31,9 +39,9 @@ export function useNodeStatus({
     // Find the latest message for this node
     const latestMessage = data
       .filter(
-        (msg) => 
+        (msg) =>
           msg.kind === "data" &&
-          msg.channel === channel &&
+          (msg.channel === channel || msg.channel.startsWith(`${channel}:`)) &&
           msg.topic === topic &&
           msg.data.nodeId === nodeId,
       )
@@ -52,4 +60,4 @@ export function useNodeStatus({
   }, [data, nodeId, channel, topic]);
 
   return status;
-};
+}

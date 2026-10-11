@@ -30,7 +30,7 @@ export const openAiExecutor: NodeExecutor<OpenAiData> = async ({
   publish,
 }) => {
   await publish(
-    openAiChannel().status({
+    openAiChannel(userId).status({
       nodeId,
       status: "loading",
     }),
@@ -38,7 +38,7 @@ export const openAiExecutor: NodeExecutor<OpenAiData> = async ({
 
   if (!data.variableName) {
     await publish(
-      openAiChannel().status({
+      openAiChannel(userId).status({
         nodeId,
         status: "error",
       })
@@ -48,7 +48,7 @@ export const openAiExecutor: NodeExecutor<OpenAiData> = async ({
 
   if (!data.credentialId) {
     await publish(
-      openAiChannel().status({
+      openAiChannel(userId).status({
         nodeId,
         status: "error",
       }),
@@ -58,7 +58,7 @@ export const openAiExecutor: NodeExecutor<OpenAiData> = async ({
 
   if (!data.userPrompt) {
     await publish(
-      openAiChannel().status({
+      openAiChannel(userId).status({
         nodeId,
         status: "error",
       })
@@ -82,7 +82,7 @@ export const openAiExecutor: NodeExecutor<OpenAiData> = async ({
 
   if (!credential) {
     await publish(
-      openAiChannel().status({
+      openAiChannel(userId).status({
         nodeId,
         status: "error",
       })
@@ -116,7 +116,7 @@ export const openAiExecutor: NodeExecutor<OpenAiData> = async ({
         : "";
     
     await publish(
-      openAiChannel().status({
+      openAiChannel(userId).status({
         nodeId,
         status: "success",
       }),
@@ -130,7 +130,7 @@ export const openAiExecutor: NodeExecutor<OpenAiData> = async ({
     }
   } catch (error) {
      await publish(
-      openAiChannel().status({
+      openAiChannel(userId).status({
         nodeId,
         status: "error",
       }),

@@ -30,7 +30,7 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
   publish,
 }) => {
   await publish(
-    geminiChannel().status({
+    geminiChannel(userId).status({
       nodeId,
       status: "loading",
     }),
@@ -38,7 +38,7 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
 
   if (!data.variableName) {
     await publish(
-      geminiChannel().status({
+      geminiChannel(userId).status({
         nodeId,
         status: "error",
       })
@@ -48,7 +48,7 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
 
   if (!data.credentialId) {
     await publish(
-      geminiChannel().status({
+      geminiChannel(userId).status({
         nodeId,
         status: "error",
       }),
@@ -58,7 +58,7 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
 
   if (!data.userPrompt) {
     await publish(
-      geminiChannel().status({
+      geminiChannel(userId).status({
         nodeId,
         status: "error",
       })
@@ -82,7 +82,7 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
 
   if (!credential) {
     await publish(
-      geminiChannel().status({
+      geminiChannel(userId).status({
         nodeId,
         status: "error",
       })
@@ -116,7 +116,7 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
         : "";
     
     await publish(
-      geminiChannel().status({
+      geminiChannel(userId).status({
         nodeId,
         status: "success",
       }),
@@ -130,7 +130,7 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
     }
   } catch (error) {
      await publish(
-      geminiChannel().status({
+      geminiChannel(userId).status({
         nodeId,
         status: "error",
       }),

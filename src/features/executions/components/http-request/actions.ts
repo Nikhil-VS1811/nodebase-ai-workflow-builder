@@ -1,19 +1,19 @@
 "use server";
 
-import { getSubscriptionToken, type Realtime } from "@inngest/realtime";
+import type { Realtime } from "@inngest/realtime";
 import { httpRequestChannel } from "@/inngest/channels/http-request";
-import { inngest } from "@/inngest/client";
+import {
+  mintRealtimeSubscriptionToken,
+  type RealtimeTokenRequestOptions,
+} from "@/inngest/realtime-auth";
 
 export type HttpRequestToken = Realtime.Token<
   typeof httpRequestChannel,
   ["status"]
 >;
 
-export async function fetchHttpRequestRealtimeToken(): Promise<HttpRequestToken> {
-  const token = await getSubscriptionToken(inngest, {
-    channel: httpRequestChannel(),
-    topics: ["status"],
-  });
-
-  return token;
-};
+export async function fetchHttpRequestRealtimeToken(
+  options?: RealtimeTokenRequestOptions,
+): Promise<HttpRequestToken> {
+  return mintRealtimeSubscriptionToken(httpRequestChannel, options);
+}

@@ -21,12 +21,13 @@ type SlackData = {
 export const slackExecutor: NodeExecutor<SlackData> = async ({
   data,
   nodeId,
+  userId,
   context,
   step,
   publish,
 }) => {
   await publish(
-    slackChannel().status({
+    slackChannel(userId).status({
       nodeId,
       status: "loading",
     }),
@@ -34,7 +35,7 @@ export const slackExecutor: NodeExecutor<SlackData> = async ({
 
   if (!data.content) {
     await publish(
-      slackChannel().status({
+      slackChannel(userId).status({
         nodeId,
         status: "error",
       }),
@@ -49,7 +50,7 @@ export const slackExecutor: NodeExecutor<SlackData> = async ({
     const result = await step.run(`slack-webhook-${nodeId}`, async () => {
       if (!data.webhookUrl) {
         await publish(
-          slackChannel().status({
+          slackChannel(userId).status({
             nodeId,
             status: "error",
           }),
@@ -65,7 +66,7 @@ export const slackExecutor: NodeExecutor<SlackData> = async ({
 
       if (!data.variableName) {
         await publish(
-          slackChannel().status({
+          slackChannel(userId).status({
             nodeId,
             status: "error",
           })
@@ -82,7 +83,7 @@ export const slackExecutor: NodeExecutor<SlackData> = async ({
     });
     
     await publish(
-      slackChannel().status({
+      slackChannel(userId).status({
         nodeId,
         status: "success",
       }),
@@ -91,7 +92,7 @@ export const slackExecutor: NodeExecutor<SlackData> = async ({
     return result;
   } catch (error) {
      await publish(
-      slackChannel().status({
+      slackChannel(userId).status({
         nodeId,
         status: "error",
       }),
