@@ -25,6 +25,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
+import {
+  buildAuthHref,
+  resolveClientRedirectPath,
+} from "@/lib/redirect-utils";
 
 const loginSchema = z.object({
   email: z.email("Please enter a valid email address"),
@@ -33,8 +37,9 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export function LoginForm() {
+export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
   const router = useRouter();
+  const redirectPath = resolveClientRedirectPath(redirectTo);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -47,9 +52,10 @@ export function LoginForm() {
   const signInGithub = async () => {
     await authClient.signIn.social({
       provider: "github",
+      callbackURL: redirectPath,
     }, {
       onSuccess: () => {
-        router.push("/workflows");
+        router.push(redirectPath);
       },
       onError: () => {
         toast.error("Something went wrong");
@@ -60,9 +66,10 @@ export function LoginForm() {
   const signInGoogle = async () => {
     await authClient.signIn.social({
       provider: "google",
+      callbackURL: redirectPath,
     }, {
       onSuccess: () => {
-        router.push("/workflows");
+        router.push(redirectPath);
       },
       onError: () => {
         toast.error("Something went wrong");
@@ -74,10 +81,10 @@ export function LoginForm() {
     await authClient.signIn.email({
       email: values.email,
       password: values.password,
-      callbackURL: "/workflows",
+      callbackURL: redirectPath,
     }, {
       onSuccess: () => {
-        router.push("/workflows");
+        router.push(redirectPath);
       },
       onError: (ctx) => {
         toast.error(ctx.error.message);
@@ -165,7 +172,10 @@ export function LoginForm() {
                 </div>
                 <div className="text-center text-sm">
                   Don&apos;t have an account?{" "}
-                  <Link href="/signup" className="underline underline-offset-4">
+                  <Link
+                    href={buildAuthHref("/signup", redirectPath)}
+                    className="underline underline-offset-4"
+                  >
                     Sign up
                   </Link>
                 </div>

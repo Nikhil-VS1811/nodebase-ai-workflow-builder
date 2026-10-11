@@ -25,6 +25,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
+import {
+  buildAuthHref,
+  resolveClientRedirectPath,
+} from "@/lib/redirect-utils";
 
 const registerSchema = z.object({
   email: z.email("Please enter a valid email address"),
@@ -38,8 +42,9 @@ const registerSchema = z.object({
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-export function RegisterForm() {
+export function RegisterForm({ redirectTo }: { redirectTo?: string } = {}) {
   const router = useRouter();
+  const redirectPath = resolveClientRedirectPath(redirectTo);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -53,9 +58,10 @@ export function RegisterForm() {
   const signInGithub = async () => {
     await authClient.signIn.social({
       provider: "github",
+      callbackURL: redirectPath,
     }, {
       onSuccess: () => {
-        router.push("/workflows");
+        router.push(redirectPath);
       },
       onError: () => {
         toast.error("Something went wrong");
@@ -66,9 +72,10 @@ export function RegisterForm() {
   const signInGoogle = async () => {
     await authClient.signIn.social({
       provider: "google",
+      callbackURL: redirectPath,
     }, {
       onSuccess: () => {
-        router.push("/workflows");
+        router.push(redirectPath);
       },
       onError: () => {
         toast.error("Something went wrong");
@@ -82,11 +89,11 @@ export function RegisterForm() {
         name: values.email,
         email: values.email,
         password: values.password,
-        callbackURL: "/workflows",
+        callbackURL: redirectPath,
       },
       {
         onSuccess: () => {
-          router.push("/workflows");
+          router.push(redirectPath);
         },
         onError: (ctx) => {
           toast.error(ctx.error.message);
@@ -192,7 +199,10 @@ export function RegisterForm() {
                 </div>
                 <div className="text-center text-sm">
                   Already have an account?{" "}
-                  <Link href="/login" className="underline underline-offset-4">
+                  <Link
+                    href={buildAuthHref("/login", redirectPath)}
+                    className="underline underline-offset-4"
+                  >
                     Login
                   </Link>
                 </div>

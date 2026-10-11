@@ -1,10 +1,17 @@
 import { RegisterForm } from "@/features/auth/components/register-form";
 import { requireUnauth } from "@/lib/auth-utils";
+import { resolveRedirectParam } from "@/lib/redirect-utils";
 
-const Page = async () => {
-  await requireUnauth();
+type Props = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
 
-  return <RegisterForm />;
+const Page = async ({ searchParams }: Props) => {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const redirectTo = resolveRedirectParam(resolvedSearchParams);
+  await requireUnauth(redirectTo);
+
+  return <RegisterForm redirectTo={redirectTo} />;
 };
 
 export default Page;

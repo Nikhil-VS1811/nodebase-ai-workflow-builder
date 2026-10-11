@@ -27,6 +27,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { getOptionalSession } from "@/lib/auth-utils";
+import { getGetStartedHref, getSignInHref } from "@/lib/redirect-utils";
 
 const triggerIntegrations = [
   {
@@ -126,7 +128,12 @@ const platformFeatures = [
   },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await getOptionalSession();
+  const isAuthenticated = Boolean(session?.user?.id);
+  const getStartedHref = getGetStartedHref(isAuthenticated);
+  const signInHref = getSignInHref();
+
   return (
     <div className="bg-background text-foreground flex min-h-svh flex-col">
       {/* Brand Header */}
@@ -172,10 +179,10 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-2.5">
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/login">Sign In</Link>
+              <Link href={signInHref}>Sign In</Link>
             </Button>
             <Button size="sm" asChild>
-              <Link href="/signup">
+              <Link href={getStartedHref}>
                 Get Started
                 <ArrowRightIcon className="size-4" />
               </Link>
@@ -211,7 +218,7 @@ export default function LandingPage() {
 
               <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
                 <Button size="lg" className="w-full sm:w-auto" asChild>
-                  <Link href="/signup">
+                  <Link href={getStartedHref}>
                     Get Started
                     <ArrowRightIcon className="size-4" />
                   </Link>
@@ -222,7 +229,7 @@ export default function LandingPage() {
                   className="w-full sm:w-auto"
                   asChild
                 >
-                  <Link href="/login">Sign In to Workspace</Link>
+                  <Link href={signInHref}>Sign In to Workspace</Link>
                 </Button>
               </div>
             </div>
@@ -515,7 +522,7 @@ export default function LandingPage() {
             </p>
             <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button size="lg" className="w-full sm:w-auto" asChild>
-                <Link href="/signup">
+                <Link href={getStartedHref}>
                   Get Started
                   <ArrowRightIcon className="size-4" />
                 </Link>
@@ -526,7 +533,7 @@ export default function LandingPage() {
                 className="w-full sm:w-auto"
                 asChild
               >
-                <Link href="/login">Sign In</Link>
+                <Link href={signInHref}>Sign In</Link>
               </Button>
             </div>
           </div>
@@ -551,13 +558,13 @@ export default function LandingPage() {
 
           <div className="text-muted-foreground flex flex-wrap items-center justify-center gap-6 text-xs font-medium">
             <Link
-              href="/login"
+              href={signInHref}
               className="hover:text-foreground transition-colors"
             >
               Sign In
             </Link>
             <Link
-              href="/signup"
+              href={getStartedHref}
               className="hover:text-foreground transition-colors"
             >
               Get Started
