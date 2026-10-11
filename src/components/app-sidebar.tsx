@@ -5,8 +5,10 @@ import {
   FolderOpenIcon,
   HistoryIcon,
   KeyIcon,
+  LogInIcon,
   LogOutIcon,
   StarIcon,
+  UserPlusIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -51,6 +53,7 @@ const menuItems = [
 export const AppSidebar = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const { data: session } = authClient.useSession();
   const { hasActiveSubscription, isLoading } = useHasActiveSubscription();
 
   return (
@@ -58,7 +61,7 @@ export const AppSidebar = () => {
       <SidebarHeader>
         <SidebarMenuItem>
           <SidebarMenuButton asChild className="gap-x-4 h-10 px-4">
-            <Link href="/" prefetch>
+            <Link href="/" prefetch={false}>
               <Image
                 src="/logos/logo.svg"
                 alt="Nodebase"
@@ -87,7 +90,7 @@ export const AppSidebar = () => {
                       asChild
                       className="gap-x-4 h-10 px-4"
                     >
-                      <Link href={item.url} prefetch>
+                      <Link href={item.url} prefetch={false}>
                         <item.icon className="size-4" />
                         <span>{item.title}</span>
                       </Link>
@@ -101,47 +104,78 @@ export const AppSidebar = () => {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          {!hasActiveSubscription && !isLoading && (
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                tooltip="Upgade to Pro"
-                className="gap-x-4 h-10 px-4"
-                onClick={() => authClient.checkout({ slug: "pro" })}
-              >
-                <StarIcon className="h-4 w-4" />
-                <span>Upgrade to Pro</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+          {!session ? (
+            <>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip="Sign in"
+                  className="gap-x-4 h-10 px-4"
+                  asChild
+                >
+                  <Link href="/login?redirect=/workflows">
+                    <LogInIcon className="h-4 w-4" />
+                    <span>Sign in</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip="Create account"
+                  className="gap-x-4 h-10 px-4"
+                  asChild
+                >
+                  <Link href="/signup?redirect=/workflows">
+                    <UserPlusIcon className="h-4 w-4" />
+                    <span>Create account</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </>
+          ) : (
+            <>
+              {!hasActiveSubscription && !isLoading && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip="Upgrade to Pro"
+                    className="gap-x-4 h-10 px-4"
+                    onClick={() => authClient.checkout({ slug: "pro" })}
+                  >
+                    <StarIcon className="h-4 w-4" />
+                    <span>Upgrade to Pro</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip="Billing Portal"
+                  className="gap-x-4 h-10 px-4"
+                  onClick={() => authClient.customer.portal()}
+                >
+                  <CreditCardIcon className="h-4 w-4" />
+                  <span>Billing Portal</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip="Sign out"
+                  className="gap-x-4 h-10 px-4"
+                  onClick={() =>
+                    authClient.signOut({
+                      fetchOptions: {
+                        onSuccess: () => {
+                          router.replace("/login");
+                          router.refresh();
+                        },
+                      },
+                    })
+                  }
+                >
+                  <LogOutIcon className="h-4 w-4" />
+                  <span>Sign out</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </>
           )}
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Billing Portal"
-              className="gap-x-4 h-10 px-4"
-              onClick={() => authClient.customer.portal()}
-            >
-              <CreditCardIcon className="h-4 w-4" />
-              <span>Billing Portal</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Sign out"
-              className="gap-x-4 h-10 px-4"
-              onClick={() =>
-                authClient.signOut({
-                  fetchOptions: {
-                    onSuccess: () => {
-                      router.replace("/login");
-                      router.refresh();
-                    },
-                  },
-                })
-              }
-            >
-              <LogOutIcon className="h-4 w-4" />
-              <span>Sign out</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
+import { getAuthErrorMessage } from "@/lib/auth-config";
 import { buildAuthHref, resolveClientRedirectPath } from "@/lib/redirect-utils";
 
 const loginSchema = z.object({
@@ -62,7 +63,9 @@ export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
           }
         },
         onError: (ctx) => {
-          toast.error(ctx.error?.message ?? "Something went wrong");
+          toast.error(
+            getAuthErrorMessage(ctx, "Unable to sign in with GitHub."),
+          );
         },
       },
     );
@@ -84,7 +87,9 @@ export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
           }
         },
         onError: (ctx) => {
-          toast.error(ctx.error?.message ?? "Something went wrong");
+          toast.error(
+            getAuthErrorMessage(ctx, "Unable to sign in with Google."),
+          );
         },
       },
     );
@@ -102,7 +107,9 @@ export function LoginForm({ redirectTo }: { redirectTo?: string } = {}) {
           router.refresh();
         },
         onError: (ctx) => {
-          toast.error(ctx.error.message);
+          toast.error(
+            getAuthErrorMessage(ctx, "Unable to sign in. Please try again."),
+          );
         },
       },
     );

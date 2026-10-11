@@ -14,8 +14,8 @@ import {
 
 describe("Landing Page CTA & Authentication Redirect Handling", () => {
   describe("Get Started & Sign In CTA Hrefs", () => {
-    it("routes unauthenticated Get Started CTA to /signup with return destination /workflows", () => {
-      assert.equal(getGetStartedHref(false), "/signup?redirect=/workflows");
+    it("routes unauthenticated Get Started CTA directly to /workflows/demo without login or signup", () => {
+      assert.equal(getGetStartedHref(false), "/workflows/demo");
     });
 
     it("routes authenticated Get Started CTA directly to /workflows", () => {
@@ -29,7 +29,7 @@ describe("Landing Page CTA & Authentication Redirect Handling", () => {
     it("sanitizes custom redirect targets passed to CTA helpers", () => {
       assert.equal(
         getGetStartedHref(false, "https://evil.example/phish"),
-        "/signup?redirect=/workflows",
+        "/workflows/demo",
       );
       assert.equal(
         getGetStartedHref(true, "//evil.example/phish"),
@@ -97,13 +97,24 @@ describe("Landing Page CTA & Authentication Redirect Handling", () => {
   });
 
   describe("End-to-End Navigation & Auth Flow Simulation", () => {
-    it("simulates signed-out Get Started -> Signup -> /workflows flow", () => {
+    it("simulates signed-out Get Started -> direct /workflows/demo builder navigation without login prompt", () => {
       // 1. Visitor is unauthenticated on /
       const landingGetStartedHref = getGetStartedHref(false);
-      assert.equal(landingGetStartedHref, "/signup?redirect=/workflows");
+      assert.equal(landingGetStartedHref, "/workflows/demo");
+
+      // 2. Visitor opens /workflows/demo directly - no redirect to /signup or /login
+      const url = new URL(landingGetStartedHref, "http://nodebase.local");
+      assert.equal(url.pathname, "/workflows/demo");
+      assert.equal(url.search, "");
+    });
+
+    it("simulates signed-out user explicitly choosing Sign Up -> /signup?redirect=/workflows flow", () => {
+      // 1. Visitor clicks "Sign Up" or "Create Account"
+      const explicitSignupHref = buildAuthHref("/signup", "/workflows");
+      assert.equal(explicitSignupHref, "/signup?redirect=/workflows");
 
       // 2. Visitor lands on /signup?redirect=/workflows
-      const url = new URL(landingGetStartedHref, "http://nodebase.local");
+      const url = new URL(explicitSignupHref, "http://nodebase.local");
       const serverRedirectTo = resolveRedirectParam(url.searchParams);
       assert.equal(serverRedirectTo, "/workflows");
 

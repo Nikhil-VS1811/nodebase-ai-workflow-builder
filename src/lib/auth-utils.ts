@@ -14,9 +14,7 @@ export const getOptionalSession = async () => {
 };
 
 export const requireAuth = async (redirectTo: string | null = "/workflows") => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getOptionalSession();
 
   if (!session) {
     redirect(redirectTo ? buildAuthHref("/login", redirectTo) : "/login");
@@ -26,9 +24,7 @@ export const requireAuth = async (redirectTo: string | null = "/workflows") => {
 };
 
 export const requireUnauth = async (redirectTo?: string | string[] | null) => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getOptionalSession();
 
   if (session) {
     redirect(sanitizeRedirectPath(redirectTo));

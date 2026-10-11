@@ -6,6 +6,7 @@ import {
   EditorLoading,
 } from "@/features/editor/components/editor";
 import { EditorHeader } from "@/features/editor/components/editor-header";
+import { isDemoWorkflow } from "@/features/workflows/guest-workflow";
 import { prefetchWorkflow } from "@/features/workflows/server/prefetch";
 import { requireAuth } from "@/lib/auth-utils";
 import { HydrateClient } from "@/trpc/server";
@@ -18,6 +19,20 @@ interface PageProps {
 
 const Page = async ({ params }: PageProps) => {
   const { workflowId } = await params;
+
+  if (isDemoWorkflow(workflowId)) {
+    return (
+      <ErrorBoundary fallback={<EditorError />}>
+        <Suspense fallback={<EditorLoading />}>
+          <EditorHeader workflowId="demo" />
+          <main className="flex-1">
+            <Editor workflowId="demo" />
+          </main>
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
   await requireAuth(`/workflows/${workflowId}`);
   prefetchWorkflow(workflowId);
 

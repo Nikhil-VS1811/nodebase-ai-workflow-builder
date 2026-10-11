@@ -20,6 +20,7 @@ export function useNodeStatus({
   refreshToken,
 }: UseNodeStatusOptions) {
   const [status, setStatus] = useState<NodeStatus>("initial");
+  const isDemoNode = nodeId.startsWith("demo-") || nodeId.includes("demo");
 
   const handleRefreshToken = useCallback(
     () => refreshToken({ nodeId }),
@@ -28,7 +29,7 @@ export function useNodeStatus({
 
   const { data } = useInngestSubscription({
     refreshToken: handleRefreshToken,
-    enabled: true,
+    enabled: !isDemoNode,
   });
 
   useEffect(() => {

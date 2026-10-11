@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
+import { getAuthErrorMessage } from "@/lib/auth-config";
 import { buildAuthHref, resolveClientRedirectPath } from "@/lib/redirect-utils";
 
 const registerSchema = z
@@ -69,7 +70,9 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string } = {}) {
           }
         },
         onError: (ctx) => {
-          toast.error(ctx.error?.message ?? "Something went wrong");
+          toast.error(
+            getAuthErrorMessage(ctx, "Unable to sign up with GitHub."),
+          );
         },
       },
     );
@@ -91,7 +94,9 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string } = {}) {
           }
         },
         onError: (ctx) => {
-          toast.error(ctx.error?.message ?? "Something went wrong");
+          toast.error(
+            getAuthErrorMessage(ctx, "Unable to sign up with Google."),
+          );
         },
       },
     );
@@ -111,7 +116,12 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string } = {}) {
           router.refresh();
         },
         onError: (ctx) => {
-          toast.error(ctx.error.message);
+          toast.error(
+            getAuthErrorMessage(
+              ctx,
+              "Unable to create account. Please try again.",
+            ),
+          );
         },
       },
     );

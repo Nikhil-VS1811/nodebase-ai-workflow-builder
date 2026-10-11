@@ -161,15 +161,16 @@ export function buildAuthHref(
   return `${authPath}?redirect=${encodeURIComponent(safeRedirect)}`;
 }
 
+export const DEMO_WORKFLOW_ROUTE = "/workflows/demo";
+
 export function getGetStartedHref(
   isAuthenticated: boolean,
   redirectTarget: string = DEFAULT_AUTH_REDIRECT,
 ): string {
-  const safeRedirect = sanitizeRedirectPath(redirectTarget);
   if (isAuthenticated) {
-    return safeRedirect;
+    return sanitizeRedirectPath(redirectTarget);
   }
-  return buildAuthHref("/signup", safeRedirect);
+  return DEMO_WORKFLOW_ROUTE;
 }
 
 export function getSignInHref(
