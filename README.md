@@ -138,53 +138,53 @@ Authenticate with email/password or OAuth providers (GitHub and Google) powered 
 
 ```mermaid
 flowchart TD
-    subgraph Client["Browser Client (Next.js 15 App Router & React 19)"]
-        Landing["Public Landing Page (/)"]
-        GuestCanvas["Guest Workflow Builder (/workflows/demo)<br/>Browser localStorage"]
-        AuthCanvas["Authenticated Editor & Dashboard<br/>(@xyflow/react + TanStack Query + Jotai)"]
+    subgraph Client["Browser Client - Next.js 15 App Router and React 19"]
+        Landing["Public Landing Page"]
+        GuestCanvas["Guest Workflow Builder - Browser localStorage"]
+        AuthCanvas["Authenticated Editor and Dashboard - React Flow"]
     end
 
-    subgraph Server["Next.js Server & API Layer"]
-        AuthAPI["Better Auth (/api/auth/[...all])<br/>Email/Password + GitHub & Google OAuth + Polar Plugin"]
-        TRPC["tRPC v11 Router (/api/trpc/[trpc])<br/>protectedProcedure & premiumProcedure"]
-        Webhooks["Webhook Endpoints<br/>/api/webhooks/stripe & /api/webhooks/google-form"]
-        RealtimeAuth["Realtime Token Minting<br/>Server Actions (User & Node Ownership Check)"]
+    subgraph Server["Next.js Server and Authorization Layer"]
+        AuthAPI["Better Auth - Email, GitHub OAuth, Google OAuth, Polar"]
+        TRPC["tRPC v11 Routers - Protected and Premium Procedures"]
+        Webhooks["Verified Webhook Routes - Stripe and Google Forms"]
+        RealtimeAuth["Realtime Token Action - User and Node Ownership Check"]
     end
 
-    subgraph Data["Persistence & Cryptography"]
-        Prisma[("PostgreSQL + Prisma ORM<br/>User, Workflow, Node, Connection, Credential, Execution")]
-        Crypto["Credential Encryption (Cryptr AES-256-GCM)<br/>ENCRYPTION_KEY"]
+    subgraph Data["Persistence and Cryptography"]
+        Prisma["PostgreSQL with Prisma ORM - Workflows, Nodes, Executions"]
+        Crypto["Credential Encryption - Cryptr AES-256-GCM"]
     end
 
-    subgraph Orchestration["Durable Execution Engine (Inngest)"]
-        InngestRoute["Inngest Handler (/api/inngest)<br/>Function: execute-workflow"]
-        TopoSort["Topological Sort & DAG Validation<br/>(toposort)"]
-        RealtimePub["Inngest Realtime Channels<br/>(User-Scoped Status Events)"]
+    subgraph Orchestration["Durable Execution Engine - Inngest"]
+        InngestRoute["Inngest Runner - execute-workflow"]
+        TopoSort["Topological Sort and DAG Cycle Validation"]
+        RealtimePub["Inngest Realtime Channels - User-Scoped Status"]
     end
 
-    subgraph Integrations["External Providers & Targets (SSRF-Validated)"]
-        AI["AI Providers (Vercel AI SDK)<br/>OpenAI (gpt-4) • Gemini (gemini-2.0-flash) • Anthropic (claude-sonnet-4-5)"]
-        HTTP["External REST APIs<br/>(ky + validateUrlForSsrf)"]
-        Chat["Messaging Webhooks<br/>Discord & Slack"]
+    subgraph Integrations["Workflow Node Executors - SSRF Validated"]
+        AI["AI Providers - OpenAI, Google Gemini, Anthropic Claude"]
+        HTTP["HTTP Request Executor - ky with SSRF Guard"]
+        Chat["Messaging Webhooks - Discord and Slack"]
     end
 
     Landing -->|"Get Started as Guest"| GuestCanvas
-    Landing -->|"Sign In / Sign Up"| AuthAPI
-    AuthCanvas <-->|"Session & OAuth"| AuthAPI
-    AuthCanvas <-->|"Type-Safe Queries & Mutations"| TRPC
-    AuthCanvas <-->|"Subscribe to Node Status"| RealtimeAuth
-    TRPC --> Prisma
-    TRPC <--> Crypto
-    TRPC -->|"inngest.send('workflows/execute.workflow')"| InngestRoute
-    Webhooks -->|"HMAC / Secret Verified"| InngestRoute
-    InngestRoute --> Prisma
-    InngestRoute --> TopoSort
-    TopoSort --> AI
-    TopoSort --> HTTP
-    TopoSort --> Chat
-    Crypto -.->|"Decrypt API Key at Execution Step"| AI
-    InngestRoute -->|"Publish loading / success / error"| RealtimePub
-    RealtimePub -.->|"Live Node Status"| AuthCanvas
+    Landing -->|"Sign In or Sign Up"| AuthAPI
+    AuthAPI -->|"Authenticated Session"| AuthCanvas
+    AuthCanvas -->|"Type-Safe Queries and Mutations"| TRPC
+    AuthCanvas -->|"Request Subscription Token"| RealtimeAuth
+    TRPC -->|"Read and Write State"| Prisma
+    TRPC -->|"Encrypt API Credentials"| Crypto
+    TRPC -->|"Send Execute Event"| InngestRoute
+    Webhooks -->|"HMAC and Secret Verified Event"| InngestRoute
+    InngestRoute -->|"Load Graph and Save Execution"| Prisma
+    InngestRoute -->|"Order Nodes"| TopoSort
+    TopoSort -->|"Execute AI Step"| AI
+    TopoSort -->|"Execute HTTP Step"| HTTP
+    TopoSort -->|"Execute Messaging Step"| Chat
+    Crypto -.->|"Decrypt API Key at Runtime"| AI
+    InngestRoute -->|"Publish Node Status"| RealtimePub
+    RealtimePub -.->|"Stream Live Status"| AuthCanvas
 ```
 
 ### Workflow Execution Lifecycle
